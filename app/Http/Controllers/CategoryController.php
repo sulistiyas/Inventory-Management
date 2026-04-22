@@ -32,4 +32,93 @@ class CategoryController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Store a new category.
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $category = $this->categoryService->createCategory($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category created successfully',
+            'data' => $category,
+        ], 201);
+    }
+
+    /**
+     * Get a category by ID for editing.
+     */
+    public function show(int $id): JsonResponse
+    {
+        $category = $this->categoryService->getCategory($id);
+
+        if (! $category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $category,
+        ]);
+    }
+
+    /**
+     * Update a category.
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $category = $this->categoryService->getCategory($id);
+
+        if (! $category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category not found',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $updated = $this->categoryService->updateCategory($id, $validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category updated successfully',
+            'data' => $updated,
+        ]);
+    }
+
+    /**
+     * Delete a category.
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $category = $this->categoryService->getCategory($id);
+
+        if (! $category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category not found',
+            ], 404);
+        }
+
+        $this->categoryService->deleteCategory($id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category deleted successfully',
+        ]);
+    }
 }

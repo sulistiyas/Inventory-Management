@@ -26,6 +26,10 @@ Route::middleware(['auth'])->group(function () {
     // Categories
     Route::get('/categories', fn () => view('categories.index'))->name('categories.index');
     Route::get('/api/categories', [CategoryController::class, 'list'])->name('api.categories.list');
+    Route::post('/api/categories', [CategoryController::class, 'store'])->name('api.categories.store');
+    Route::get('/api/categories/{id}', [CategoryController::class, 'show'])->name('api.categories.show');
+    Route::put('/api/categories/{id}', [CategoryController::class, 'update'])->name('api.categories.update');
+    Route::delete('/api/categories/{id}', [CategoryController::class, 'destroy'])->name('api.categories.destroy');
 
     // Profile
     // Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
