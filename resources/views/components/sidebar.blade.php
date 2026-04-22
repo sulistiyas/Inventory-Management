@@ -141,7 +141,7 @@
     </a>
 
     {{-- Admin --}}
-    {{-- @if (auth()->user()->isAdmin()) --}}
+    @if (auth()->user()->isAdmin())
       <div class="nav-section-label">Admin</div>
 
       <a
@@ -159,7 +159,7 @@
         </span>
         <span class="nav-item-label">User Management</span>
       </a>
-    {{-- @endif --}}
+    @endif
 
   </nav>
 

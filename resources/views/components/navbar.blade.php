@@ -95,14 +95,11 @@
       >
         {{-- Avatar with initials --}}
         <div class="profile-avatar">
-          {{-- {{ strtoupper(substr(auth()->user()->name, 0, 1)) }} --}}
-          Admin
+          {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
         </div>
         <div class="profile-info">
-          {{-- <div class="profile-name">{{ auth()->user()->name }}</div>
-          <div class="profile-role">{{ auth()->user()->roleLabelAttribute ?? ucfirst(auth()->user()->role) }}</div> --}}
-          <div class="profile-name">Admin</div>
-          <div class="profile-role">Administrator</div>
+          <div class="profile-name">{{ auth()->user()->name }}</div>
+          <div class="profile-role">{{ auth()->user()->roleLabelAttribute ?? ucfirst(auth()->user()->role) }}</div>
         </div>
         <span class="profile-chevron" :class="{ 'open': open }">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -125,10 +122,8 @@
         x-transition:leave-end="opacity-0 scale-95"
       >
         <div class="dropdown-header">
-          {{-- <div class="dropdown-header-name">{{ auth()->user()->name }}</div>
-          <div class="dropdown-header-email">{{ auth()->user()->email }}</div> --}}
-          <div class="dropdown-header-name">Admin</div>
-          <div class="dropdown-header-email">admin@example.com</div>
+          <div class="dropdown-header-name">{{ auth()->user()->name }}</div>
+          <div class="dropdown-header-email">{{ auth()->user()->email }}</div>
         </div>
 
         {{-- <a href="{{ route('profile.show') }}" class="dropdown-item"> --}}
@@ -140,7 +135,7 @@
           Profil Saya
         </a>
 
-        {{-- @if(auth()->user()->isAdmin()) --}}
+        @if(auth()->user()->isAdmin())
           {{-- <a href="{{ route('users.index') }}" class="dropdown-item"> --}}
           <a href="#" class="dropdown-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -149,7 +144,7 @@
             </svg>
             Pengaturan
           </a>
-        {{-- @endif --}}
+        @endif
 
         <div class="dropdown-divider"></div>
 
