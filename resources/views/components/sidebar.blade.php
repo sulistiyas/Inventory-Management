@@ -58,8 +58,8 @@
     </a>
 
     <a
-      {{-- href="{{ route('categories.index') }}" --}}
-      href="#"
+      href="{{ route('categories.index') }}"
+      {{-- href="#" --}}
       class="nav-item {{ request()->routeIs('categories.*') ? 'active' : '' }}"
       data-tooltip="Kategori"
     >

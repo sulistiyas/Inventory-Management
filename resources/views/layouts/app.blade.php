@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="csrf-token" content="{{ csrf_token() }}" />
   <title>@yield('title', 'Dashboard') — WarehouSe</title>
+  @vite(['resources/js/app.js'])
 
   {{-- Favicon --}}
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23F59E0B'/><path d='M8 22V12l8-4 8 4v10l-8 4-8-4z' fill='none' stroke='white' stroke-width='1.5'/></svg>" />
@@ -60,7 +61,7 @@
           @include('components.alert', ['type' => 'success', 'message' => session('success')])
         @endif
         @if (session('error'))
-          @include('layouts.partials.alert', ['type' => 'error', 'message' => session('error')])
+          @include('components.alert', ['type' => 'error', 'message' => session('error')])
         @endif
 
         @yield('content')

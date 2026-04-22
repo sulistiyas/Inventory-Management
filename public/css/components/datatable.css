@@ -1,0 +1,414 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Datatable Styles — Reusable component for all modules
+   ───────────────────────────────────────────────────────────────────────── */
+
+.datatable-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    max-width: 100%;
+}
+
+/* ─── Search Bar ──────────────────────────────────────────────────────── */
+
+.datatable-search-box {
+    padding: 1.25rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fafafa;
+}
+
+.datatable-search-input {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: white;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.datatable-search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background: white;
+}
+
+.datatable-search-input::placeholder {
+    color: #9ca3af;
+}
+
+/* ─── Table Container ─────────────────────────────────────────────────── */
+
+.datatable-table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Table ───────────────────────────────────────────────────────────── */
+
+.datatable-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    background: white;
+}
+
+.datatable-thead {
+    background: linear-gradient(135deg, #f3f4f6 0%, #f9fafb 100%);
+    border-bottom: 2px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+}
+
+.datatable-th {
+    padding: 1rem 1.25rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+.datatable-td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f0f0f0;
+    color: #374151;
+    word-break: break-word;
+}
+
+.datatable-tbody tr {
+    transition: background-color 0.15s ease;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.datatable-tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.datatable-tbody tr:last-child {
+    border-bottom: none;
+}
+
+.datatable-tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ─── Loading State ───────────────────────────────────────────────────── */
+
+.datatable-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4rem 2rem;
+    color: #6b7280;
+    width: 100%;
+}
+
+.spinner {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 0.75rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.datatable-loading span {
+    font-weight: 500;
+}
+
+/* ─── Empty State ─────────────────────────────────────────────────────── */
+
+.datatable-empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    color: #9ca3af;
+    width: 100%;
+}
+
+.datatable-empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+}
+
+.datatable-empty-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+    max-width: 400px;
+}
+
+/* ─── Error State ─────────────────────────────────────────────────────── */
+
+.datatable-error {
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border: 1px solid #fca5a5;
+    border-radius: 0.5rem;
+    color: #991b1b;
+    font-size: 0.875rem;
+    margin: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.datatable-error strong {
+    font-weight: 600;
+}
+
+/* ─── Pagination ──────────────────────────────────────────────────────── */
+
+.datatable-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem;
+    border-top: 1px solid #e5e7eb;
+    background: #fafafa;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.datatable-page-info {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+    min-width: 200px;
+}
+
+.datatable-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.datatable-controls label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+}
+
+.datatable-per-page {
+    padding: 0.5rem 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    background-color: white;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.datatable-per-page:hover {
+    border-color: #9ca3af;
+    background-color: #f9fafb;
+}
+
+.datatable-per-page:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.datatable-page-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.datatable-page-btn {
+    min-width: 2.25rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: white;
+    color: #374151;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.datatable-page-btn:hover:not(:disabled) {
+    background-color: #f3f4f6;
+    border-color: #3b82f6;
+    color: #3b82f6;
+    transform: translateY(-1px);
+}
+
+.datatable-page-btn.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-color: #2563eb;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+.datatable-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background-color: #f9fafb;
+}
+
+/* ─── Responsive Design ───────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+    .datatable-th,
+    .datatable-td {
+        padding: 0.875rem 1rem;
+    }
+
+    .datatable-pagination {
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .datatable-wrapper {
+        border-radius: 0.5rem;
+    }
+
+    .datatable-search-box {
+        padding: 1rem;
+    }
+
+    .datatable-table {
+        font-size: 0.8rem;
+    }
+
+    .datatable-th,
+    .datatable-td {
+        padding: 0.75rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .datatable-th {
+        font-size: 0.65rem;
+    }
+
+    .datatable-pagination {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .datatable-page-info {
+        width: 100%;
+        text-align: center;
+    }
+
+    .datatable-controls {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .datatable-page-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .datatable-search-input {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    .datatable-page-btn {
+        min-width: 2rem;
+        padding: 0.5rem 0.625rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .datatable-search-box {
+        padding: 0.875rem;
+    }
+
+    .datatable-th,
+    .datatable-td {
+        padding: 0.625rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .datatable-th {
+        font-size: 0.6rem;
+    }
+
+    .datatable-pagination {
+        padding: 0.875rem;
+    }
+
+    .datatable-page-info {
+        font-size: 0.8rem;
+    }
+
+    .datatable-controls label {
+        font-size: 0.8rem;
+    }
+
+    .datatable-per-page {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.8rem;
+    }
+
+    .datatable-page-btn {
+        min-width: 1.75rem;
+        padding: 0.375rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    .datatable-loading,
+    .datatable-empty {
+        padding: 2.5rem 1rem;
+    }
+
+    .datatable-empty-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .datatable-error {
+        margin: 1rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* ─── Print Styles ────────────────────────────────────────────────────── */
+
+@media print {
+    .datatable-search-box,
+    .datatable-pagination {
+        display: none;
+    }
+
+    .datatable-wrapper {
+        box-shadow: none;
+        border: 1px solid #e5e7eb;
+    }
+}

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Categories
+    Route::get('/categories', fn () => view('categories.index'))->name('categories.index');
+    Route::get('/api/categories', [CategoryController::class, 'list'])->name('api.categories.list');
 
     // Profile
     // Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');

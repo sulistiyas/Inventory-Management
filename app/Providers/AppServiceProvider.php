@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Product;
+use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\DashboardRepository;
+use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\DashboardRepositoryInterface;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
@@ -21,9 +23,13 @@ class AppServiceProvider extends ServiceProvider
             DashboardRepository::class
         );
 
+        $this->app->bind(
+            CategoryRepositoryInterface::class,
+            CategoryRepository::class
+        );
+
         // Add more bindings here as features are built:
         // $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
-        // $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
         // $this->app->bind(SupplierRepositoryInterface::class, SupplierRepository::class);
         // $this->app->bind(StockMovementRepositoryInterface::class, StockMovementRepository::class);
     }
