@@ -11,7 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Authentication middleware already registered by default
+        // Authorization (can/cannot) middleware already registered by default
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

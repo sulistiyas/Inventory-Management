@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\Product;
 use App\Repositories\Eloquent\DashboardRepository;
 use App\Repositories\Interfaces\DashboardRepositoryInterface;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -31,11 +33,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ── Authorization Gates ────────────────────────────────────────────────────
+        Gate::define('admin', function ($user) {
+            return $user->isAdmin();
+        });
+
         // ── Share low stock count with ALL views (for sidebar badge + navbar bell) ──
         View::composer('*', function ($view) {
             // if (auth()->check()) {
-                $lowStockCount = \App\Models\Product::lowStock()->count();
-                $view->with('lowStockCount', $lowStockCount);
+            $lowStockCount = Product::lowStock()->count();
+            $view->with('lowStockCount', $lowStockCount);
             // }
         });
     }
