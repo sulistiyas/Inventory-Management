@@ -459,9 +459,13 @@ body {
   margin-left: var(--sidebar-w);
   padding-top: var(--navbar-h);
   min-height: 100vh;
-  transition: margin-left var(--transition);
+  /* FIX: width must account for sidebar so content fills remaining space */
+  width: calc(100% - var(--sidebar-w));
+  transition: margin-left var(--transition), width var(--transition);
   display: flex;
   flex-direction: column;
+  /* FIX: ensure children (content-area) stretch full width */
+  align-items: stretch;
 }
 
 .main-content.sidebar-collapsed {
@@ -470,11 +474,11 @@ body {
 
 .content-area {
   padding: 28px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    align-items: stretch;
+  flex: 1;
+  /* FIX: ensure content-area stretches full width */
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* Page header */
@@ -499,6 +503,10 @@ body {
   color: var(--text-muted);
   margin-top: 3px;
   font-weight: 400;
+}
+
+.page-header-actions {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
 }
 
 /* ── Stat Cards ────────────────────────────────────────────── */
@@ -710,7 +718,7 @@ body {
 }
 .btn-secondary:hover { background: var(--bg-body); color: var(--text-primary); border-color: var(--border-dark); }
 
-.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-sm { padding: 6px 12px; font-size: 12.5px; }
 
 /* ── Pill tabs (chart period selector) ─────────────────────── */
 .pill-tabs {

@@ -45,10 +45,7 @@
     {{-- ── Main area ────────────────────────────────────────────── --}}
     <div
       class="main-content"
-      :class="{
-        'sidebar-collapsed': collapsed,
-        'sidebar-collapsed': !mobileOpen && window.innerWidth <= 768
-      }"
+      :class="{ 'sidebar-collapsed': collapsed }"
     >
       {{-- ── Navbar ─────────────────────────────────────────────── --}}
       @include('components.navbar')
@@ -93,11 +90,10 @@
           }
         },
 
-        // Sync sidebar CSS classes to DOM
         get sidebarClass() {
           return {
-            'collapsed':    this.collapsed,
-            'mobile-open':  this.mobileOpen,
+            'collapsed':   this.collapsed,
+            'mobile-open': this.mobileOpen,
           };
         },
 
