@@ -3,122 +3,105 @@
 namespace App\Http\Controllers;
 
 use App\Services\CategoryService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
-    public function __construct(
-        protected CategoryService $categoryService
-    ) {}
+    protected $service;
 
-    /**
-     * Get paginated categories with search — API endpoint.
-     */
-    public function list(Request $request): JsonResponse
+    public function __construct(CategoryService $service)
     {
-        $perPage = (int) $request->input('per_page', 10);
-        $search = $request->input('search');
+        $this->service = $service;
+    }
 
-        $categories = $this->categoryService->getPaginatedCategories($perPage, $search);
+    public function index()
+    {
+        return view('categories.index');
+    }
+
+    public function list(Request $request)
+    {
+        $data = $this->service->list($request);
 
         return response()->json([
-            'data' => $categories->items(),
+            'success' => true,
+            'data' => $data->items(),
             'meta' => [
-                'current_page' => $categories->currentPage(),
-                'last_page' => $categories->lastPage(),
-                'per_page' => $categories->perPage(),
-                'total' => $categories->total(),
+                'current_page' => $data->currentPage(),
+                'last_page' => $data->lastPage(),
+                'per_page' => $data->perPage(),
+                'total' => $data->total(),
+            ]
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->merge([
+            'name' => strtolower(trim($request->name))
+        ]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|unique:categories,name',
+            'description' => 'nullable|string'
+        ], [
+            'name.unique' => 'Nama category sudah digunakan'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+        $category = $this->service->store($request->all());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Category created',
+            'data' => $category
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories')
+                ->where(fn ($q) => $q->whereRaw('LOWER(name) = ?', [strtolower($request->name)]))
+                ->ignore($id)
             ],
-        ]);
-    }
-
-    /**
-     * Store a new category.
-     */
-    public function store(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
+            'description' => 'nullable|string'
         ]);
 
-        $category = $this->categoryService->createCategory($validated);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Category created successfully',
-            'data' => $category,
-        ], 201);
-    }
-
-    /**
-     * Get a category by ID for editing.
-     */
-    public function show(int $id): JsonResponse
-    {
-        $category = $this->categoryService->getCategory($id);
-
-        if (! $category) {
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Category not found',
-            ], 404);
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
         }
+        $category = $this->service->update($id, $request->all());
 
         return response()->json([
             'success' => true,
-            'data' => $category,
+            'message' => 'Category updated',
+            'data' => $category
         ]);
     }
 
-    /**
-     * Update a category.
-     */
-    public function update(Request $request, int $id): JsonResponse
+    public function destroy($id)
     {
-        $category = $this->categoryService->getCategory($id);
-
-        if (! $category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Category not found',
-            ], 404);
-        }
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-        ]);
-
-        $updated = $this->categoryService->updateCategory($id, $validated);
+        $this->service->delete($id);
 
         return response()->json([
             'success' => true,
-            'message' => 'Category updated successfully',
-            'data' => $updated,
-        ]);
-    }
-
-    /**
-     * Delete a category.
-     */
-    public function destroy(int $id): JsonResponse
-    {
-        $category = $this->categoryService->getCategory($id);
-
-        if (! $category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Category not found',
-            ], 404);
-        }
-
-        $this->categoryService->deleteCategory($id);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Category deleted successfully',
+            'message' => 'Category deleted'
         ]);
     }
 }

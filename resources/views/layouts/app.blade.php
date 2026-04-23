@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="{{ asset('css/app.css') }}" />
   <link rel="stylesheet" href="{{ asset('css/components/modal.css') }}" />
   <link rel="stylesheet" href="{{ asset('css/components/datatable.css') }}" />
+  <link rel="stylesheet" href="{{ asset('css/components/toast.css') }}" />
+
 
   {{-- Alpine.js --}}
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -56,12 +58,15 @@
       <div class="content-area">
 
         {{-- Flash messages --}}
-        @if (session('success'))
-          @include('components.alert', ['type' => 'success', 'message' => session('success')])
-        @endif
-        @if (session('error'))
-          @include('components.alert', ['type' => 'error', 'message' => session('error')])
-        @endif
+        <div id="alert-container" class="toast-container">
+          {{-- Flash dari Laravel --}}
+          @if (session('success'))
+            @include('components.alert', ['type' => 'success', 'message' => session('success')])
+          @endif
+          @if (session('error'))
+            @include('components.alert', ['type' => 'error', 'message' => session('error')])
+          @endif
+        </div>
 
         @yield('content')
       </div>
@@ -108,4 +113,60 @@
 
   @stack('scripts')
 </body>
+<script>
+  window.showAlert = function(type, message) {
+      const container = document.getElementById('alert-container');
+
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+
+      toast.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px;">
+              ${getIcon(type)}
+              <span>${message}</span>
+          </div>
+          <button style="background:none;border:none;cursor:pointer;">✖</button>
+      `;
+
+      // close manual
+      toast.querySelector('button').onclick = () => {
+          toast.remove();
+      };
+
+      container.appendChild(toast);
+
+      // auto remove
+      setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateX(30px)';
+          setTimeout(() => toast.remove(), 300);
+      }, 4000);
+  };
+
+  // ICON HELPER
+  function getIcon(type) {
+      if (type === 'success') return '✔️';
+      if (type === 'error') return '❌';
+      if (type === 'warning') return '⚠️';
+      return 'ℹ️';
+  }
+</script>
+
+<script id="7d7r1o">
+document.addEventListener('DOMContentLoaded', () => {
+    const alert = sessionStorage.getItem('alert');
+
+    if (alert) {
+        const { type, message } = JSON.parse(alert);
+
+        if (window.showAlert) {
+            window.showAlert(type, message);
+        } else {
+            alert(message); // fallback
+        }
+
+        sessionStorage.removeItem('alert');
+    }
+});
+</script>
 </html>

@@ -3,46 +3,41 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\Category;
-use App\Repositories\Interfaces\CategoryRepositoryInterface;
-use Illuminate\Pagination\LengthAwarePaginator;
 
-class CategoryRepository implements CategoryRepositoryInterface
+class CategoryRepository
 {
-    public function paginate(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function getAll($filters = [], $perPage = 10)
     {
         $query = Category::query();
 
-        if ($search) {
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%");
+        if (!empty($filters['search'])) {
+            $query->where('name', 'like', '%' . $filters['search'] . '%')->orderBy('id','asc');
         }
 
-        return $query->orderBy('id', 'asc')
-            ->paginate($perPage);
+        return $query->latest()->paginate($perPage);
     }
 
-    public function create(array $data): Category
+    public function findById($id)
+    {
+        return Category::findOrFail($id);
+    }
+
+    public function create(array $data)
     {
         return Category::create($data);
     }
 
-    public function find(int $id): ?Category
+    public function update($id, array $data)
     {
-        return Category::find($id);
-    }
-
-    public function update(int $id, array $data): Category
-    {
-        $category = $this->find($id);
+        $category = $this->findById($id);
         $category->update($data);
 
-        return $category->fresh();
+        return $category;
     }
 
-    public function delete(int $id): bool
+    public function delete($id)
     {
-        $category = $this->find($id);
-
-        return $category ? $category->delete() : false;
+        $category = $this->findById($id);
+        return $category->delete();
     }
 }

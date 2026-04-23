@@ -24,12 +24,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Categories
-    Route::get('/categories', fn () => view('categories.index'))->name('categories.index');
-    Route::get('/api/categories', [CategoryController::class, 'list'])->name('api.categories.list');
-    Route::post('/api/categories', [CategoryController::class, 'store'])->name('api.categories.store');
-    Route::get('/api/categories/{id}', [CategoryController::class, 'show'])->name('api.categories.show');
-    Route::put('/api/categories/{id}', [CategoryController::class, 'update'])->name('api.categories.update');
-    Route::delete('/api/categories/{id}', [CategoryController::class, 'destroy'])->name('api.categories.destroy');
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('/api/categories', [CategoryController::class, 'list'])->name('categories.list');
+    Route::post('/categories', [CategoryController::class, 'store']);
+    Route::put('/categories/{id}', [CategoryController::class, 'update']);
+    Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
 
     // Profile
     // Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');

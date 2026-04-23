@@ -2,53 +2,42 @@
 
 namespace App\Services;
 
-use App\Models\Category;
-use App\Repositories\Interfaces\CategoryRepositoryInterface;
-use Illuminate\Pagination\LengthAwarePaginator;
+use App\Repositories\Eloquent\CategoryRepository;
 
 class CategoryService
 {
-    public function __construct(
-        protected CategoryRepositoryInterface $categoryRepository
-    ) {}
+    protected $repo;
 
-    /**
-     * Get paginated categories with search.
-     */
-    public function getPaginatedCategories(int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function __construct(CategoryRepository $repo)
     {
-        return $this->categoryRepository->paginate($perPage, $search);
+        $this->repo = $repo;
     }
 
-    /**
-     * Create a new category.
-     */
-    public function createCategory(array $data): Category
+    public function list($request)
     {
-        return $this->categoryRepository->create($data);
+        return $this->repo->getAll([
+            'search' => $request->search
+        ], $request->perPage ?? 10);
     }
 
-    /**
-     * Get a category by ID.
-     */
-    public function getCategory(int $id): ?Category
+    public function store($data)
     {
-        return $this->categoryRepository->find($id);
+        return $this->repo->create([
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+        ]);
     }
 
-    /**
-     * Update a category.
-     */
-    public function updateCategory(int $id, array $data): Category
+    public function update($id, $data)
     {
-        return $this->categoryRepository->update($id, $data);
+        return $this->repo->update($id, [
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+        ]);
     }
 
-    /**
-     * Delete a category.
-     */
-    public function deleteCategory(int $id): bool
+    public function delete($id)
     {
-        return $this->categoryRepository->delete($id);
+        return $this->repo->delete($id);
     }
 }
