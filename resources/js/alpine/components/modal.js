@@ -11,6 +11,22 @@ export default function modal(config = {}) {
         method: 'POST',
         id: null,
 
+        init() {
+            window.addEventListener('fill-form', (e) => {
+                this.mode = 'edit';
+                this.title = config.editTitle || 'Edit Data';
+                this.form = { ...e.detail };
+                this.id = e.detail.id;
+                this.method = 'PUT';
+                this.errors = {};
+                this.open = true;
+            });
+
+            window.addEventListener('open-delete', (e) => {
+                this.openDelete(e.detail);
+            });
+        },
+
         openCreate() {
             this.mode = 'create';
             this.title = config.createTitle || 'Create Data';
@@ -56,16 +72,16 @@ export default function modal(config = {}) {
                     .querySelector('meta[name="csrf-token"]')
                     .getAttribute('content');
 
-                let url = this.endpoint;
+                let url = `${this.endpoint}/store`;
                 let payload = { ...this.form };
 
                 if (this.mode === 'edit') {
-                    url = `${this.endpoint}/${this.id}`;
+                    url = `${this.endpoint}/update/${this.id}`;
                     payload._method = 'PUT';
                 }
 
                 if (this.mode === 'delete') {
-                    url = `${this.endpoint}/${this.id}`;
+                    url = `${this.endpoint}/destroy/${this.id}`;
                     payload = { _method: 'DELETE' };
                 }
 

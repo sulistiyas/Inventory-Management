@@ -1,0 +1,67 @@
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.btn-primary {
+    background: #f97316;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+}
+
+.btn-secondary {
+    background: #eee;
+    padding: 8px 14px;
+    border-radius: 8px;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 6px;
+}
+
+.btn-sm.warning {
+    background: #facc15;
+}
+
+.btn-sm.danger {
+    background: #ef4444;
+    color: #fff;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.badge.active {
+    background: #22c55e;
+    color: white;
+}
+
+.badge.inactive {
+    background: #9ca3af;
+    color: white;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}

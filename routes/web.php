@@ -3,6 +3,8 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,11 +26,34 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Categories
-    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
-    Route::get('/api/categories', [CategoryController::class, 'list'])->name('categories.list');
-    Route::post('/categories', [CategoryController::class, 'store']);
-    Route::put('/categories/{id}', [CategoryController::class, 'update']);
-    Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+    Route::prefix('categories')->group(function () {
+        Route::get('/', [CategoryController::class, 'index'])->name('categories.index');
+        Route::get('/api/data', [CategoryController::class, 'list'])->name('categories.list');
+        Route::post('/store', [CategoryController::class, 'store']);
+        Route::put('/update/{id}', [CategoryController::class, 'update']);
+        Route::delete('/destroy/{id}', [CategoryController::class, 'destroy']);
+    });
+
+    // Suppliers
+    Route::prefix('suppliers')->group(function () {
+        Route::get('/', [SupplierController::class, 'index'])->name('suppliers.index');
+        Route::get('/api/data', [SupplierController::class, 'list'])->name('suppliers.list');
+        Route::post('/store', [SupplierController::class, 'store']);
+        Route::get('/{id}', [SupplierController::class, 'show']);
+        Route::put('/update/{id}', [SupplierController::class, 'update']);
+        Route::delete('/destroy/{id}', [SupplierController::class, 'destroy']);
+    });
+
+    
+    // Products
+    Route::prefix('products')->group(function () {
+        Route::get('/', [ProductController::class, 'index'])->name('products.index');
+        Route::get('/api/data', [ProductController::class, 'list'])->name('products.list');
+        Route::post('/store', [ProductController::class, 'store']);
+        Route::get('/{id}', [ProductController::class, 'show']);
+        Route::put('/update/{id}', [ProductController::class, 'update']);
+        Route::delete('/destroy/{id}', [ProductController::class, 'destroy']);
+    });
 
     // Profile
     // Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');

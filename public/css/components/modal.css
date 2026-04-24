@@ -9,6 +9,11 @@
    Menggunakan CSS variables dari app.css:
      --accent, --accent-dark, --accent-light, --font-body,
      --radius-sm, --radius-md, --transition, dll.
+
+   v2 additions:
+     - modal-box scrollable (max-height + flex column)
+     - modal-body overflow-y auto + custom amber scrollbar
+     - supplier form layout: .sup-* helpers (2col grid, toggle)
    ============================================================ */
 
 /* ── Backdrop ─────────────────────────────────────────────── */
@@ -20,7 +25,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: rgba(15, 23, 42, 0.5);      /* slate-900/50 — selaras app.css */
+  background: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   font-family: var(--font-body, 'DM Sans', sans-serif);
@@ -31,6 +36,9 @@
   position: relative;
   width: 100%;
   max-width: 480px;
+  max-height: 92vh;           /* ← supaya tidak overflow layar */
+  display: flex;              /* ← header/footer fixed, body scroll */
+  flex-direction: column;
   background: #ffffff;
   border-radius: var(--radius-lg, 14px);
   box-shadow:
@@ -43,13 +51,14 @@
 
 @keyframes modalSlideIn {
   from { opacity: 0; transform: scale(0.93) translateY(10px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
 }
 
-/* Accent bar atas — selaras warna --accent dari app.css */
+/* Accent bar atas */
 .modal-box::before {
   content: '';
   display: block;
+  flex-shrink: 0;             /* ← jangan ikut shrink saat scroll */
   height: 3px;
   background: linear-gradient(90deg, #F59E0B 0%, #FCD34D 60%, #FEF3C7 100%);
 }
@@ -59,12 +68,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;             /* ← tetap di atas saat body scroll */
   padding: 1.25rem 1.5rem 1rem;
-  border-bottom: 1px solid #FEF3C7;       /* amber-100 */
+  border-bottom: 1px solid #FEF3C7;
   gap: 1rem;
 }
 
-/* Title — override any generic h3 dari app.css */
 .modal-header .modal-title {
   margin: 0;
   font-size: 1rem;
@@ -75,7 +84,7 @@
   font-family: var(--font-body, 'DM Sans', sans-serif);
 }
 
-/* Close button — class .modal-close-btn agar tidak terpengaruh .btn */
+/* Close button */
 .modal-close-btn {
   display: inline-flex;
   align-items: center;
@@ -85,15 +94,14 @@
   height: 32px;
   border: none;
   border-radius: var(--radius-sm, 6px);
-  background: #FFF7ED;                    /* orange-50 */
-  color: #92400E;                         /* amber-800 */
+  background: #FFF7ED;
+  color: #92400E;
   font-size: 0;
   cursor: pointer;
   transition: background var(--transition, 220ms), color var(--transition, 220ms), transform 0.15s ease;
   position: relative;
 }
 
-/* SVG ✕ via pseudo — tidak ubah innerHTML Alpine */
 .modal-close-btn::before {
   content: '';
   display: block;
@@ -107,7 +115,7 @@
 }
 
 .modal-close-btn:hover {
-  background: #FDE68A;                    /* amber-200 */
+  background: #FDE68A;
   color: #78350F;
   transform: rotate(90deg) scale(1.05);
 }
@@ -118,10 +126,21 @@
 
 /* ── Body ─────────────────────────────────────────────────── */
 .modal-body {
+  flex: 1;                    /* ← ambil sisa ruang antara header & footer */
+  overflow-y: auto;           /* ← scroll hanya di sini */
   padding: 1.5rem;
+
+  /* Custom amber scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #FCD34D #FEF3C7;
 }
 
-/* Scoped label — hanya di dalam .modal-body */
+.modal-body::-webkit-scrollbar        { width: 5px; }
+.modal-body::-webkit-scrollbar-track  { background: #FEF3C7; border-radius: 99px; }
+.modal-body::-webkit-scrollbar-thumb  { background: #FCD34D; border-radius: 99px; }
+.modal-body::-webkit-scrollbar-thumb:hover { background: #F59E0B; }
+
+/* Scoped label */
 .modal-body .modal-form-group label {
   display: block;
   margin-bottom: 0.35rem;
@@ -137,7 +156,7 @@
   margin-top: 0;
 }
 
-/* Scoped inputs — hanya di dalam .modal-form-group */
+/* Scoped inputs */
 .modal-form-group input[type="text"],
 .modal-form-group input[type="email"],
 .modal-form-group input[type="number"],
@@ -178,7 +197,13 @@
   font-weight: 500;
 }
 
-/* Delete confirm block */
+/* Required asterisk — global helper */
+.modal-required {
+  color: #EF4444;
+  margin-left: 2px;
+}
+
+/* ── Delete confirm block ─────────────────────────────────── */
 .modal-delete-confirm {
   text-align: center;
   padding: 0.75rem 0 0.25rem;
@@ -215,12 +240,13 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-shrink: 0;             /* ← tetap di bawah saat body scroll */
   gap: 0.625rem;
   padding: 1rem 1.5rem 1.5rem;
   border-top: 1px solid var(--border, #E2E8F0);
 }
 
-/* ── modal-btn-cancel (BUKAN .btn / .btn-secondary dari app.css) ── */
+/* ── modal-btn-cancel ─────────────────────────────────────── */
 .modal-btn-cancel {
   display: inline-flex;
   align-items: center;
@@ -247,7 +273,7 @@
   transform: translateY(1px);
 }
 
-/* ── modal-btn-submit (BUKAN .btn / .btn-primary dari app.css) ── */
+/* ── modal-btn-submit ─────────────────────────────────────── */
 .modal-btn-submit {
   display: inline-flex;
   align-items: center;
@@ -282,7 +308,6 @@
   box-shadow: none;
 }
 
-/* Delete mode: tombol submit jadi merah */
 .modal-btn-submit.is-delete {
   background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
   color: #ffffff;
@@ -293,10 +318,139 @@
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
 }
 
+/* ══════════════════════════════════════════════════════════
+   FORM LAYOUT HELPERS — .sup-* (supplier form, reusable
+   untuk form lain yang butuh 2-column layout & toggle)
+   ══════════════════════════════════════════════════════════ */
+
+/* Full-width field wrapper */
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+
+.modal-field:first-child,
+.modal-field-row:first-child {
+  margin-top: 0;
+}
+
+/* 2-column row */
+.modal-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* Label di dalam .modal-field / .modal-field-row
+   (override margin-top dari .modal-body .modal-form-group label) */
+.modal-field label,
+.modal-field-row label {
+  margin-top: 0 !important;
+  margin-bottom: 0.35rem;
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  letter-spacing: 0.01em;
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+}
+
+/* ── Status toggle row ─────────────────────────────────── */
+.modal-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 1rem;
+  padding: 0.6875rem 1rem;
+  background: #F8FAFC;
+  border: 1.5px solid var(--border, #E2E8F0);
+  border-radius: var(--radius-sm, 6px);
+  transition: border-color var(--transition, 220ms);
+}
+
+.modal-toggle-row:focus-within {
+  border-color: var(--accent, #F59E0B);
+}
+
+.modal-toggle-label {
+  flex: 1;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+}
+
+/* Toggle switch button */
+.modal-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  border: none;
+  background: #CBD5E1;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 220ms ease;
+  outline: none;
+}
+
+.modal-toggle:focus-visible {
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+}
+
+.modal-toggle--on {
+  background: #10B981;
+}
+
+.modal-toggle__thumb {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  margin-left: 3px;
+  transition: margin-left 220ms ease;
+  pointer-events: none;
+}
+
+.modal-toggle--on .modal-toggle__thumb {
+  margin-left: 23px;
+}
+
+/* Toggle status text */
+.modal-toggle-text {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  min-width: 52px;
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+  transition: color 220ms;
+}
+
+.modal-toggle-text--on  { color: #065F46; }
+.modal-toggle-text--off { color: #94A3B8; }
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 520px) {
-  .modal-box { border-radius: var(--radius-md, 10px); }
+  .modal-box {
+    max-height: 96vh;         /* lebih tinggi di HP kecil */
+    border-radius: var(--radius-md, 10px);
+  }
+
   .modal-header,
   .modal-body,
-  .modal-footer { padding-left: 1.125rem; padding-right: 1.125rem; }
+  .modal-footer {
+    padding-left: 1.125rem;
+    padding-right: 1.125rem;
+  }
+
+  /* 2col → 1col di layar kecil */
+  .modal-field-row {
+    grid-template-columns: 1fr;
+  }
 }

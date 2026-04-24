@@ -6,15 +6,16 @@ use App\Models\Category;
 
 class CategoryRepository
 {
-    public function getAll($filters = [], $perPage = 10)
+    public function getAll($request = [])
     {
         $query = Category::query();
+        $query->orderBy('id','asc');
 
-        if (!empty($filters['search'])) {
-            $query->where('name', 'like', '%' . $filters['search'] . '%')->orderBy('id','asc');
+        if (!empty($request['search'])) {
+            $query->where('name', 'ILIKE', '%' . $request['search'] . '%')->orderBy('id','asc');
         }
 
-        return $query->latest()->paginate($perPage);
+        return $query->latest()->paginate($request['per_page'] ?? 10);
     }
 
     public function findById($id)

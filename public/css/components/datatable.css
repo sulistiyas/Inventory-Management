@@ -132,11 +132,31 @@
 /* ── Table — BUKAN .data-table dari app.css ───────────────── */
 .datatable-table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
   font-size: 0.875rem;
   font-family: var(--font-body, 'DM Sans', sans-serif);
 }
+/* Khusus supplier — override min-width default */
+.datatable--supplier .datatable-table {
+  min-width: 780px;
+}
 
+/* ── Table scroll wrapper (baru) ──────────────────────────── */
+.datatable-table-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;  /* smooth scroll iOS */
+
+  /* Custom amber scrollbar — konsisten dengan modal.css */
+  scrollbar-width: thin;
+  scrollbar-color: #FCD34D #FEF3C7;
+}
+
+.datatable-table-wrap::-webkit-scrollbar        { height: 5px; }
+.datatable-table-wrap::-webkit-scrollbar-track  { background: #FEF3C7; }
+.datatable-table-wrap::-webkit-scrollbar-thumb  { background: #FCD34D; border-radius: 99px; }
+.datatable-table-wrap::-webkit-scrollbar-thumb:hover { background: #F59E0B; }
 /* Thead */
 .datatable-table thead tr {
   background: var(--accent-light, #FEF3C7);

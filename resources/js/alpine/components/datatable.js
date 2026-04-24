@@ -51,6 +51,10 @@ export default function datatable(config = {}) {
             });
 
             this.fetchData();
+        },
+
+        getValue(obj, path) {
+            return path.split('.').reduce((o, key) => o ? o[key] : null, obj);
         }
     }
 }

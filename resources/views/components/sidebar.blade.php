@@ -44,8 +44,7 @@
     <div class="nav-section-label">Inventory</div>
 
     <a
-    {{-- href="{{ route('products.index') }}" --}}
-    href="#"
+    href="{{ route('products.index') }}"
     class="nav-item {{ request()->routeIs('products.*') ? 'active' : '' }}"
       data-tooltip="Produk"
     >
@@ -74,8 +73,7 @@
     </a>
 
     <a
-      {{-- href="{{ route('suppliers.index') }}" --}}
-      href="#"
+      href="{{ route('suppliers.index') }}"
       class="nav-item {{ request()->routeIs('suppliers.*') ? 'active' : '' }}"
       data-tooltip="Supplier"
     >
