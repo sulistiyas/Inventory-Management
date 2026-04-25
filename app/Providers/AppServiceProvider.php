@@ -47,8 +47,7 @@ class AppServiceProvider extends ServiceProvider
         // ── Share low stock count with ALL views (for sidebar badge + navbar bell) ──
         View::composer('*', function ($view) {
             // if (auth()->check()) {
-            $lowStockCount = Product::lowStock()->count();
-            $view->with('lowStockCount', $lowStockCount);
+                $view->with('lowStockCount', \App\Models\Product::lowStock()->count());
             // }
         });
     }

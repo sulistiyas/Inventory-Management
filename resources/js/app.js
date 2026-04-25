@@ -9,9 +9,11 @@ import modal from './alpine/components/modal';
 
 // alpine pages
 import productManager from './alpine/pages/product';
+import stockManager from './alpine/pages/stockmovement';
 
 // register alpine pages
 window.productManager = productManager;
+window.stockManager = stockManager;
 
 // register alpine components
 window.datatable = datatable;

@@ -10,7 +10,7 @@ return new class extends Migration
     public function up(): void
     {
         // Create the movement type ENUM
-        DB::statement("CREATE TYPE stock_movement_type AS ENUM ('in', 'out')");
+        DB::statement("CREATE TYPE stock_movement_type AS ENUM ('in', 'out', 'adjustment')");
 
         Schema::create('stock_movements', function (Blueprint $table) {
             $table->id();

@@ -11,7 +11,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::statement('TRUNCATE products, categories, suppliers, users RESTART IDENTITY CASCADE');
+        DB::statement('TRUNCATE products, categories, suppliers, users, stock_movements RESTART IDENTITY CASCADE');
 
         // DB::table('users')->truncate();
         // DB::table('products')->truncate();
@@ -102,5 +102,55 @@ class DatabaseSeeder extends Seeder
 
             }
         }
+        // ── Sample stock movements ───────────────────────────────────────
+        $products = DB::table('products')->get();
+        $userIds  = DB::table('users')->pluck('id')->toArray();
+
+        foreach ($products as $product) {
+
+            $currentStock = $product->stock;
+
+            for ($i = 0; $i < 7; $i++) { // ~ total 100 data (15 produk x 7)
+                
+                $isIn = rand(0, 1); // random in / out
+                $qty  = rand(1, 10);
+
+                // Kalau OUT tapi stok gak cukup → paksa jadi IN
+                if (!$isIn && $currentStock < $qty) {
+                    $isIn = true;
+                }
+
+                $type = $isIn ? 'in' : 'out';
+
+                $stockBefore = $currentStock;
+
+                if ($type === 'in') {
+                    $currentStock += $qty;
+                } else {
+                    $currentStock -= $qty;
+                }
+
+                $stockAfter = $currentStock;
+
+                DB::table('stock_movements')->insert([
+                    'product_id'   => $product->id,
+                    'user_id'      => $userIds[array_rand($userIds)],
+                    'type'         => $type,
+                    'quantity'     => $qty,
+                    'stock_before' => $stockBefore,
+                    'stock_after'  => $stockAfter,
+                    'notes'        => $type === 'in'
+                                        ? 'Restock barang'
+                                        : 'Pengeluaran barang',
+                    'created_at'   => now()->subDays(rand(0, 30)),
+                ]);
+            }
+
+            // Update stock terakhir ke tabel products
+            DB::table('products')
+                ->where('id', $product->id)
+                ->update(['stock' => $currentStock]);
+        }
     }
+    
 }

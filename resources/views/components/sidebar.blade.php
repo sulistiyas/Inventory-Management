@@ -90,8 +90,8 @@
     <div class="nav-section-label">Stok</div>
 
     <a
-      {{-- href="{{ route('stock.index') }}" --}}
-      href="#"
+      href="{{ route('stock.index') }}"
+      {{-- href="#" --}}
       class="nav-item {{ request()->routeIs('stock.index') ? 'active' : '' }}"
       data-tooltip="Manajemen Stok"
     >

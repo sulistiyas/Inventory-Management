@@ -4,6 +4,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StockController;
+use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,27 +57,45 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/destroy/{id}', [ProductController::class, 'destroy']);
     });
 
+    
+    Route::prefix('stock')->name('stock.')->group(function () {
+ 
+        // ── Web pages ─────────────────────────────────────────────────────────
+        Route::get('/',[StockController::class, 'index'])->name('index');
+        Route::get('/in',[StockController::class, 'createIn'])->name('in');
+        Route::get('/out',[StockController::class, 'createOut'])->name('out');
+        Route::get('/{movement}',[StockController::class, 'show'])->name('show');
+        Route::get('/product/{product}/history', [StockController::class, 'productHistory'])->name('product.history');
+    });
+    
+    // ── routes/api.php additions ───────────────────────────────────────────────
+    
+    Route::prefix('api')->group(function () {
+    
+        // Stock movements list (datatable)
+        Route::get('/stock',[StockController::class, 'apiList'])->name('api.stock.list');
+        Route::get('/stock/products', [StockController::class, 'apiProducts'])->name('api.stock.products');
+        Route::get('/stock/{movement}',[StockController::class, 'apiShow'])->name('api.stock.show');
+    
+        // Transactions
+        Route::post('/stock/in',[StockController::class, 'storeIn'])->name('api.stock.in');
+        Route::post('/stock/out',[StockController::class, 'storeOut'])->name('api.stock.out');
+    });
+    
+    
+    // ── Stock Movements (new controller) ──────────────────────────────────────────
+    
+    Route::prefix('stock-movements')->name('stock-movements.')->group(function () {
+        Route::get('/',[StockMovementController::class, 'index'])->name('index');
+        Route::get('/list',[StockMovementController::class, 'list'])->name('list');
+        Route::post('/store',[StockMovementController::class, 'store'])->name('store');
+    });
+
     // Profile
     // Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     // Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Products
-    // Route::resource('products', ProductController::class);
-    // Route::get('/products/filter/{filter}', [ProductController::class, 'index'])
-    //      ->name('products.filter');
-
-    // Categories
-    // Route::resource('categories', CategoryController::class);
-
-    // Suppliers
-    // Route::resource('suppliers', SupplierController::class);
-
-    // Stock management
-    // Route::get('/stock',     [StockController::class, 'index'])->name('stock.index');
-    // Route::get('/stock/in',  [StockController::class, 'createIn'])->name('stock.in');
-    // Route::post('/stock/in', [StockController::class, 'storeIn'])->name('stock.store.in');
-    // Route::get('/stock/out', [StockController::class, 'createOut'])->name('stock.out');
-    // Route::post('/stock/out',[StockController::class, 'storeOut'])->name('stock.store.out');
+    
 
     // User management — admin only
     // Route::middleware(['can:admin'])->group(function () {
