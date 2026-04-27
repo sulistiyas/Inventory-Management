@@ -19,33 +19,36 @@ class StockMovementController extends Controller
 
     public function index(Request $request): mixed
     {
-        if ($request->expectsJson()) {
+        if ($request->wantsJson() || $request->ajax()) {
+
             $perPage = (int) $request->get('perPage', 10);
             $search  = $request->get('search', '');
+            $page    = (int) $request->get('page', 1);
 
-            $paginator = $this->repository->getAllWithRelation($perPage, $search);
+            $result = $this->repository->getAllWithRelation($perPage, $page, $search);
 
             return response()->json([
-                'data' => $paginator->map(fn (StockMovement $m) => [
+                'data' => collect($result['data'])->map(fn (StockMovement $m) => [
                     'id'           => $m->id,
                     'product_name' => $m->product->name ?? '-',
-                    'product_sku'  => $m->product->sku  ?? '-',  // ← ada di scope withRelations
-                    'user_name'    => $m->user->name,             // withDefault sudah handle deleted user
+                    'product_sku'  => $m->product->sku  ?? '-',
+                    'user_name'    => $m->user->name ?? '-',
                     'type'         => $m->type,
-                    'type_label'   => $m->type_label,             // ← pakai accessor
+                    'type_label'   => $m->type_label,
                     'quantity'     => $m->quantity,
                     'stock_before' => $m->stock_before,
                     'stock_after'  => $m->stock_after,
                     'notes'        => $m->notes,
-                    'created_at'   => $m->created_at->format('d M Y, H:i'),
-                ]),
+                    'created_at'   => optional($m->created_at)->format('d M Y, H:i'),
+                ])->values(),
                 'meta' => [
-                    'total'     => $paginator->total(),
-                    'last_page' => $paginator->lastPage(),
-                    'page'      => $paginator->currentPage(),
+                    'total'     => $result['meta']['total'],
+                    'last_page' => $result['meta']['last_page'],
+                    'page'      => $result['meta']['current_page'],
                 ],
             ]);
         }
+
         $isAdmin = Auth::user()->role === 'admin';
 
         $products = Product::orderBy('name')->get(['id', 'name', 'sku', 'stock']);

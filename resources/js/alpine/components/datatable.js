@@ -20,7 +20,17 @@ export default function datatable(config = {}) {
                     search: this.search
                 });
 
-                const res = await fetch(`${this.apiEndpoint}?${params}`);
+                const res = await fetch(`${this.apiEndpoint}?${params}`, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                // 🔥 HANDLE ERROR HTTP
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+
                 const json = await res.json();
 
                 this.data = json.data;

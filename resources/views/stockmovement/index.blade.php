@@ -9,7 +9,7 @@
 {{-- ── Page wrapper — datatable x-data ─────────────────────────── --}}
 <div
     x-data="datatable({
-        apiEndpoint: '{{ route('stock-movements.list') }}',
+        apiEndpoint: '{{ route('stock-movements.index') }}',
         perPage: 10,
         columns: [],
     })"

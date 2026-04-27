@@ -3,69 +3,6 @@
 @section('title', 'Manajemen Stok')
 @section('breadcrumb', 'Manajemen Stok')
 
-@push('styles')
-<style>
-/* ── Stock-specific styles ──────────────────────────────── */
-.stock-type-in  { color: var(--success); }
-.stock-type-out { color: var(--danger); }
-
-.product-select-option {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 12px; border: 1px solid var(--border);
-    border-radius: var(--radius-sm); cursor: pointer;
-    transition: border-color var(--transition), background var(--transition);
-    margin-bottom: 6px;
-}
-.product-select-option:hover  { border-color: var(--accent); background: var(--accent-light); }
-.product-select-option.selected { border-color: var(--accent); background: var(--accent-light); }
-.product-select-option.low-stock { border-left: 3px solid var(--warning); }
-
-.stock-indicator {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: 12px; font-weight: 600; font-family: var(--font-mono);
-    padding: 3px 8px; border-radius: 20px;
-}
-.stock-indicator.ok  { background: var(--success-bg); color: #065F46; }
-.stock-indicator.low { background: var(--warning-bg); color: #92400E; }
-.stock-indicator.out { background: var(--danger-bg);  color: #991B1B; }
-
-.qty-input-wrapper {
-    display: flex; align-items: center; gap: 0;
-    border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden;
-}
-.qty-btn {
-    width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
-    background: var(--bg-body); border: none; cursor: pointer;
-    font-size: 18px; font-weight: 600; color: var(--text-secondary);
-    transition: background var(--transition), color var(--transition);
-    flex-shrink: 0;
-}
-.qty-btn:hover { background: var(--border); color: var(--text-primary); }
-.qty-input {
-    flex: 1; border: none; outline: none; text-align: center;
-    font-size: 15px; font-weight: 700; font-family: var(--font-mono);
-    color: var(--text-primary); background: transparent; padding: 0 6px;
-    min-width: 0;
-}
-
-.tab-nav {
-    display: flex; gap: 0;
-    border: 1px solid var(--border); border-radius: var(--radius-sm);
-    overflow: hidden; background: var(--bg-body);
-}
-.tab-btn {
-    flex: 1; padding: 8px 20px; font-size: 13.5px; font-weight: 600;
-    border: none; cursor: pointer; background: transparent;
-    color: var(--text-muted); font-family: var(--font-body);
-    transition: background var(--transition), color var(--transition);
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-}
-.tab-btn.active { background: var(--bg-card); color: var(--text-primary); }
-.tab-btn.active.in  { color: var(--success); }
-.tab-btn.active.out { color: var(--danger); }
-.tab-btn svg { width: 15px; height: 15px; }
-</style>
-@endpush
 
 @section('content')
 <div
@@ -307,6 +244,7 @@
 
 </div>{{-- .card --}}
 
+
 {{-- ================================================================
      MODAL: Stock In / Stock Out (tab-based, single modal)
      ================================================================ --}}
@@ -323,7 +261,7 @@
     x-transition:leave-end="opacity-0"
 >
     <div
-        class="modal-panel modal-size-md"
+        class="modal-box modal-box--stock"
         @click.stop
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
@@ -334,21 +272,11 @@
     >
         {{-- Header --}}
         <div class="modal-header">
-            <div class="modal-header-icon" :class="activeTab === 'in' ? 'create' : 'delete'">
-                <template x-if="activeTab === 'in'">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                </template>
-                <template x-if="activeTab === 'out'">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/></svg>
-                </template>
+            <div>
+                <p class="modal-title" x-text="activeTab === 'in' ? 'Transaksi Stok Masuk' : 'Transaksi Stok Keluar'"></p>
+                <p style="font-size:12px; color:var(--text-muted); margin:2px 0 0; font-weight:500;" x-text="activeTab === 'in' ? 'Tambah stok produk ke gudang' : 'Kurangi stok produk dari gudang'"></p>
             </div>
-            <div class="modal-title-group">
-                <div class="modal-title" x-text="activeTab === 'in' ? 'Transaksi Stok Masuk' : 'Transaksi Stok Keluar'"></div>
-                <div class="modal-subtitle" x-text="activeTab === 'in' ? 'Tambah stok produk ke gudang' : 'Kurangi stok produk dari gudang'"></div>
-            </div>
-            <button class="modal-close-btn" @click="close()" :disabled="isSubmitting" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-            </button>
+            <button class="modal-close-btn" @click="close()" :disabled="isSubmitting" type="button"></button>
         </div>
 
         <form @submit.prevent="handleSubmit()">
@@ -368,150 +296,146 @@
 
                 {{-- Global error --}}
                 <template x-if="globalError">
-                    <div class="modal-global-error" style="margin-bottom:16px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01"/></svg>
+                    <div style="display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--danger-bg); border:1px solid #FECACA; border-radius:var(--radius-sm); margin-bottom:16px; font-size:13px; color:var(--danger); font-weight:500;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:15px;height:15px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01"/></svg>
                         <span x-text="globalError"></span>
                     </div>
                 </template>
 
-                <div class="modal-form">
+                {{-- Product selector --}}
+                <div class="modal-form-group">
+                    <label>
+                        Produk <span class="modal-required">*</span>
+                    </label>
 
-                    {{-- Product selector --}}
-                    <div class="form-group">
-                        <label class="form-label">
-                            Produk <span class="form-label-required">*</span>
-                        </label>
+                    {{-- Search product --}}
+                    <div style="position:relative; margin-bottom:8px;">
+                        <svg style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-muted);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        <input type="text" x-model="productSearch" @input="filterProducts()"
+                               placeholder="Cari nama atau SKU produk..."
+                               style="padding-left:32px;" />
+                    </div>
 
-                        {{-- Search product --}}
-                        <div style="position:relative; margin-bottom:8px;">
-                            <svg style="position:absolute; left:10px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--text-muted);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                            <input type="text" x-model="productSearch" @input="filterProducts()"
-                                   placeholder="Cari nama atau SKU produk..."
-                                   class="form-input" style="padding-left:32px;" />
-                        </div>
-
-                        {{-- Product list --}}
-                        <div style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px;">
-                            <template x-for="product in filteredProducts" :key="product.id">
-                                <div
-                                    class="product-select-option"
-                                    :class="{
-                                        'selected':  form.product_id == product.id,
-                                        'low-stock': product.is_low
-                                    }"
-                                    @click="selectProduct(product)"
-                                >
-                                    <div>
-                                        <div style="font-size:13.5px; font-weight:600;" x-text="product.name"></div>
-                                        <div style="font-size:11px; color:var(--text-muted);">
-                                            <span class="text-mono" x-text="product.sku"></span>
-                                            <span x-text="product.category ? ' · ' + product.category : ''"></span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <span
-                                            class="stock-indicator"
-                                            :class="product.stock === 0 ? 'out' : (product.is_low ? 'low' : 'ok')"
-                                            x-text="product.stock + ' unit'"
-                                        ></span>
+                    {{-- Product list --}}
+                    <div style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px;">
+                        <template x-for="product in filteredProducts" :key="product.id">
+                            <div
+                                class="product-select-option"
+                                :class="{
+                                    'selected':  form.product_id == product.id,
+                                    'low-stock': product.is_low
+                                }"
+                                @click="selectProduct(product)"
+                            >
+                                <div>
+                                    <div style="font-size:13.5px; font-weight:600;" x-text="product.name"></div>
+                                    <div style="font-size:11px; color:var(--text-muted);">
+                                        <span class="text-mono" x-text="product.sku"></span>
+                                        <span x-text="product.category ? ' · ' + product.category : ''"></span>
                                     </div>
                                 </div>
-                            </template>
-                            <template x-if="filteredProducts.length === 0">
-                                <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:13px;">
-                                    Produk tidak ditemukan
+                                <div>
+                                    <span
+                                        class="stock-indicator"
+                                        :class="product.stock === 0 ? 'out' : (product.is_low ? 'low' : 'ok')"
+                                        x-text="product.stock + ' unit'"
+                                    ></span>
                                 </div>
-                            </template>
-                        </div>
-
-                        <template x-if="errors.product_id">
-                            <div class="form-error" x-text="errors.product_id[0]"></div>
+                            </div>
                         </template>
-
-                        {{-- Selected product info bar --}}
-                        <template x-if="selectedProduct">
-                            <div style="margin-top:8px; padding:10px 12px; background:var(--bg-body); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:space-between; font-size:13px;">
-                                <span style="font-weight:600; color:var(--text-primary);" x-text="selectedProduct.name"></span>
-                                <span>
-                                    Stok saat ini:
-                                    <strong class="text-mono"
-                                        :style="selectedProduct.is_low ? 'color:var(--warning)' : 'color:var(--success)'"
-                                        x-text="selectedProduct.stock + ' unit'"
-                                    ></strong>
-                                </span>
+                        <template x-if="filteredProducts.length === 0">
+                            <div style="text-align:center; padding:16px; color:var(--text-muted); font-size:13px;">
+                                Produk tidak ditemukan
                             </div>
                         </template>
                     </div>
 
-                    {{-- Quantity with +/- buttons --}}
-                    <div class="form-group">
-                        <label class="form-label">
-                            Jumlah <span class="form-label-required">*</span>
-                        </label>
-                        <div class="qty-input-wrapper" :class="{ 'has-error': errors.quantity }">
-                            <button type="button" class="qty-btn" @click="decrement()" :disabled="form.quantity <= 1">−</button>
-                            <input
-                                type="number"
-                                class="qty-input"
-                                x-model.number="form.quantity"
-                                @input="delete errors.quantity"
-                                min="1"
-                                max="999999"
-                            />
-                            <button type="button" class="qty-btn" @click="increment()">+</button>
-                        </div>
+                    <template x-if="errors.product_id">
+                        <span class="modal-field-error" x-text="errors.product_id[0]"></span>
+                    </template>
 
-                        {{-- Stock out warning --}}
-                        <template x-if="activeTab === 'out' && selectedProduct && form.quantity > selectedProduct.stock">
-                            <div class="form-error" style="color:var(--warning);">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
-                                Melebihi stok tersedia (<span x-text="selectedProduct.stock"></span> unit)
-                            </div>
-                        </template>
-
-                        <template x-if="errors.quantity">
-                            <div class="form-error" x-text="errors.quantity[0]"></div>
-                        </template>
-
-                        {{-- Preview stock result --}}
-                        <template x-if="selectedProduct && form.quantity > 0">
-                            <div style="margin-top:6px; font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
-                                <span>Stok setelah transaksi:</span>
+                    {{-- Selected product info bar --}}
+                    <template x-if="selectedProduct">
+                        <div style="margin-top:8px; padding:10px 12px; background:var(--bg-body); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:space-between; font-size:13px;">
+                            <span style="font-weight:600; color:var(--text-primary);" x-text="selectedProduct.name"></span>
+                            <span>
+                                Stok saat ini:
                                 <strong class="text-mono"
-                                    :style="stockResult < 0 ? 'color:var(--danger)' : (stockResult <= selectedProduct.min_stock ? 'color:var(--warning)' : 'color:var(--success)')"
-                                    x-text="stockResult + ' unit'"
+                                    :style="selectedProduct.is_low ? 'color:var(--warning)' : 'color:var(--success)'"
+                                    x-text="selectedProduct.stock + ' unit'"
                                 ></strong>
-                            </div>
-                        </template>
-                    </div>
-
-                    {{-- Notes --}}
-                    <div class="form-group">
-                        <label class="form-label">Catatan</label>
-                        <textarea
-                            class="form-textarea"
-                            x-model="form.notes"
-                            placeholder="Contoh: PO #12345, retur dari pelanggan, dll. (opsional)"
-                            rows="2"
-                            :disabled="isSubmitting"
-                        ></textarea>
-                    </div>
-
+                            </span>
+                        </div>
+                    </template>
                 </div>
-            </div>
+
+                {{-- Quantity with +/- buttons --}}
+                <div class="modal-form-group">
+                    <label>
+                        Jumlah <span class="modal-required">*</span>
+                    </label>
+                    <div class="qty-input-wrapper">
+                        <button type="button" class="qty-btn" @click="decrement()" :disabled="form.quantity <= 1">−</button>
+                        <input
+                            type="number"
+                            class="qty-input"
+                            x-model.number="form.quantity"
+                            @input="delete errors.quantity"
+                            min="1"
+                            max="999999"
+                        />
+                        <button type="button" class="qty-btn" @click="increment()">+</button>
+                    </div>
+
+                    {{-- Stock out warning --}}
+                    <template x-if="activeTab === 'out' && selectedProduct && form.quantity > selectedProduct.stock">
+                        <span class="modal-field-error" style="color:var(--warning); display:flex; align-items:center; gap:4px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+                            Melebihi stok tersedia (<span x-text="selectedProduct.stock"></span> unit)
+                        </span>
+                    </template>
+
+                    <template x-if="errors.quantity">
+                        <span class="modal-field-error" x-text="errors.quantity[0]"></span>
+                    </template>
+
+                    {{-- Preview stock result --}}
+                    <template x-if="selectedProduct && form.quantity > 0">
+                        <div style="margin-top:6px; font-size:12px; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+                            <span>Stok setelah transaksi:</span>
+                            <strong class="text-mono"
+                                :style="stockResult < 0 ? 'color:var(--danger)' : (stockResult <= selectedProduct.min_stock ? 'color:var(--warning)' : 'color:var(--success)')"
+                                x-text="stockResult + ' unit'"
+                            ></strong>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- Notes --}}
+                <div class="modal-form-group">
+                    <label>Catatan</label>
+                    <textarea
+                        x-model="form.notes"
+                        placeholder="Contoh: PO #12345, retur dari pelanggan, dll. (opsional)"
+                        rows="2"
+                        :disabled="isSubmitting"
+                    ></textarea>
+                </div>
+
+            </div>{{-- .modal-body --}}
 
             {{-- Footer --}}
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" @click="close()" :disabled="isSubmitting">Batal</button>
+                <button type="button" class="modal-btn-cancel" @click="close()" :disabled="isSubmitting">Batal</button>
                 <button
                     type="submit"
-                    class="btn btn-sm"
-                    :class="activeTab === 'in' ? 'btn-primary' : 'btn-danger'"
+                    class="modal-btn-submit"
+                    :class="activeTab === 'out' ? 'is-delete' : ''"
                     :disabled="isSubmitting || !form.product_id"
                 >
-                    <span x-show="isSubmitting" class="btn-spinner"></span>
+                    <span x-show="isSubmitting" class="btn-spinner" style="margin-right:6px;"></span>
                     <template x-if="!isSubmitting">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px;margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                     </template>
                     <span x-text="isSubmitting ? 'Menyimpan...' : (activeTab === 'in' ? 'Simpan Stok Masuk' : 'Simpan Stok Keluar')"></span>
                 </button>
@@ -520,6 +444,7 @@
 
     </div>
 </div>
+
 
 {{-- ================================================================
      MODAL: Movement Detail (view only)
@@ -536,22 +461,17 @@
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
 >
-    <div class="modal-panel modal-size-md" @click.stop
+    <div class="modal-box modal-box--stock" @click.stop
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100"
     >
         <div class="modal-header">
-            <div class="modal-header-icon view">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+            <div>
+                <p class="modal-title">Detail Transaksi</p>
+                <p class="text-mono" style="font-size:12px; color:var(--text-muted); margin:2px 0 0; font-weight:500;" x-text="'#' + (detailData?.id ?? '')"></p>
             </div>
-            <div class="modal-title-group">
-                <div class="modal-title">Detail Transaksi</div>
-                <div class="modal-subtitle text-mono" x-text="'#' + (detailData?.id ?? '')"></div>
-            </div>
-            <button class="modal-close-btn" @click="detailOpen = false" type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-            </button>
+            <button class="modal-close-btn" @click="detailOpen = false" type="button"></button>
         </div>
 
         <div class="modal-body" x-show="detailData">
@@ -571,11 +491,11 @@
         </div>
 
         <div class="modal-footer">
-            <a :href="'/stock/' + detailData?.id" class="btn btn-secondary btn-sm">
+            <a :href="'/stock/' + detailData?.id" class="modal-btn-cancel" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
                 Lihat Halaman Penuh
             </a>
-            <button class="btn btn-secondary btn-sm" @click="detailOpen = false">Tutup</button>
+            <button class="modal-btn-cancel" @click="detailOpen = false">Tutup</button>
         </div>
     </div>
 </div>

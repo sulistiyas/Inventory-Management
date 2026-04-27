@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Repositories\Eloquent\StockMovementRepository;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -14,20 +16,94 @@ class StockMovementService
         protected StockMovementRepository $repo
     ) {}
 
-    // ── Read ──────────────────────────────────────────────────────────────────
+    // =========================================================================
+    // READ — dipanggil StockController
+    // =========================================================================
 
-    // Returns { data, meta } — sesuai datatable.js
-    public function paginate(int $perPage, int $page, string $search): array
-    {
-        return $this->repo->getAllWithRelation($perPage, $page, $search);
-    }
-
-    public function getActiveProducts(): \Illuminate\Support\Collection
+    /**
+     * Produk aktif untuk dropdown select di form stock.in / stock.out
+     */
+    public function getProductOptions(): Collection
     {
         return $this->repo->getActiveProducts();
     }
 
-    // ── Stock In ──────────────────────────────────────────────────────────────
+    /**
+     * Summary cards untuk halaman stock.index
+     */
+    public function getSummary(): array
+    {
+        $today = today();
+
+        return [
+            'today_in'        => (int) StockMovement::stockIn()->whereDate('created_at', $today)->sum('quantity'),
+            'today_out'       => (int) StockMovement::stockOut()->whereDate('created_at', $today)->sum('quantity'),
+            'today_count'     => StockMovement::whereDate('created_at', $today)->count(),
+            'total_in'        => (int) StockMovement::stockIn()->sum('quantity'),
+            'total_out'       => (int) StockMovement::stockOut()->sum('quantity'),
+            'low_stock_count' => Product::lowStock()->count(),
+        ];
+    }
+
+    /**
+     * Paginated list untuk datatable di stock.index
+     * Pakai filter dari request (search, type, date_from, date_to, product_id)
+     */
+    public function getPaginatedApi(array $filters = []): array
+    {
+        return $this->repo->getAllWithRelation(
+            perPage:   (int) ($filters['perPage'] ?? $filters['per_page'] ?? 15),
+            page:      (int) ($filters['page'] ?? 1),
+            search:    (string) ($filters['search'] ?? ''),
+            type:      $filters['type']       ?? null,
+            dateFrom:  $filters['date_from']  ?? null,
+            dateTo:    $filters['date_to']    ?? null,
+            productId: isset($filters['product_id']) ? (int) $filters['product_id'] : null,
+        );
+    }
+
+    /**
+     * Riwayat movement untuk satu produk (halaman product-history)
+     */
+    public function getProductHistory(int $productId, int $perPage = 20): LengthAwarePaginator
+    {
+        return StockMovement::with('user')
+            ->where('product_id', $productId)
+            ->latest('created_at')
+            ->paginate($perPage);
+    }
+
+    // =========================================================================
+    // WRITE — dipanggil StockController::storeIn() & storeOut()
+    // =========================================================================
+
+    /**
+     * Proses stock in — dipanggil dari storeIn() via StockInRequest
+     */
+    public function processStockIn(array $validated): StockMovement
+    {
+        return $this->stockIn(
+            productId: (int) $validated['product_id'],
+            qty:       (int) $validated['quantity'],
+            notes:     $validated['notes'] ?? null,
+        );
+    }
+
+    /**
+     * Proses stock out — dipanggil dari storeOut() via StockOutRequest
+     */
+    public function processStockOut(array $validated): StockMovement
+    {
+        return $this->stockOut(
+            productId: (int) $validated['product_id'],
+            qty:       (int) $validated['quantity'],
+            notes:     $validated['notes'] ?? null,
+        );
+    }
+
+    // =========================================================================
+    // INTERNAL — core business logic dengan DB transaction
+    // =========================================================================
 
     public function stockIn(int $productId, int $qty, ?string $notes = null): StockMovement
     {
@@ -54,8 +130,6 @@ class StockMovementService
             ]);
         });
     }
-
-    // ── Stock Out ─────────────────────────────────────────────────────────────
 
     public function stockOut(int $productId, int $qty, ?string $notes = null): StockMovement
     {
@@ -89,8 +163,6 @@ class StockMovementService
         });
     }
 
-    // ── Adjustment — admin only ────────────────────────────────────────────────
-
     public function adjustStock(int $productId, int $newStock, ?string $notes = null): StockMovement
     {
         if (! Auth::user()->isAdmin()) {
@@ -119,76 +191,5 @@ class StockMovementService
                 'notes'        => $notes,
             ]);
         });
-    }
-
-    // ── Summary (dashboard cards) ───────────────────────────────────────────────
-    public function getSummary(): array
-    {
-        return [
-            'today_in' => StockMovement::where('type', StockMovement::TYPE_IN)
-            ->whereDate('created_at', today())
-            ->sum('quantity'),
-
-            'today_out' => StockMovement::where('type', StockMovement::TYPE_OUT)
-                ->whereDate('created_at', today())
-                ->sum('quantity'),
-
-            'today_count' => StockMovement::whereDate('created_at', today())
-                ->count(),
-
-            // ── Low stock ─────────────────────────────
-            'low_stock_count' => Product::whereColumn('stock', '<=', 'min_stock')->count(),
-            'total_products' => Product::count(),
-            'total_stock'    => Product::sum('stock'),
-            'low_stock'      => Product::whereColumn('stock', '<=', 'min_stock')->count(),
-            'movements_today' => StockMovement::whereDate('created_at', now())->count(),
-        ];
-    }
-
-    // ── Product dropdown options ────────────────────────────────────────────────
-    public function getProductOptions()
-    {
-        return Product::with(['category', 'supplier'])
-            ->orderBy('name')
-            ->get();
-    }
-
-    // ── Product history ─────────────────────────────────────────────────────────
-    public function getProductHistory(int $productId, int $perPage = 20)
-    {
-        return StockMovement::with(['user'])
-            ->where('product_id', $productId)
-            ->latest()
-            ->paginate($perPage);
-    }
-
-    // ── API datatable ───────────────────────────────────────────────────────────
-    public function getPaginatedApi(array $filters): array
-    {
-        $perPage = $filters['per_page'] ?? 10;
-        $page    = $filters['page'] ?? 1;
-        $search  = $filters['search'] ?? '';
-
-        return $this->repo->getAllWithRelation($perPage, $page, $search);
-    }
-
-    // ── Process Stock In (wrapper biar cocok controller) ────────────────────────
-    public function processStockIn(array $data): StockMovement
-    {
-        return $this->stockIn(
-            $data['product_id'],
-            $data['quantity'],
-            $data['notes'] ?? null
-        );
-    }
-
-    // ── Process Stock Out (wrapper) ─────────────────────────────────────────────
-    public function processStockOut(array $data): StockMovement
-    {
-        return $this->stockOut(
-            $data['product_id'],
-            $data['quantity'],
-            $data['notes'] ?? null
-        );
     }
 }

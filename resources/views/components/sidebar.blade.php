@@ -105,8 +105,8 @@
     </a>
 
     <a
-      {{-- href="{{ route('stock.in') }}" --}}
-      href="#"
+      href="{{ route('stock.in') }}"
+      {{-- href="#" --}}
       class="nav-item {{ request()->routeIs('stock.in') ? 'active' : '' }}"
       data-tooltip="Transaksi Masuk"
     >
@@ -125,8 +125,8 @@
     </a>
 
     <a
-      {{-- href="{{ route('stock.out') }}" --}}
-      href="#"
+      href="{{ route('stock.out') }}"
+      {{-- href="#" --}}
       class="nav-item {{ request()->routeIs('stock.out') ? 'active' : '' }}"
       data-tooltip="Transaksi Keluar"
     >

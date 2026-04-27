@@ -14,22 +14,36 @@ class StockMovementRepository
         return StockMovement::create($data);
     }
 
-    // ⚠️ HARUS tetap nama ini karena dipanggil service
+    /**
+     * Paginated list dengan filter lengkap.
+     * Dipanggil dari StockMovementService::getPaginatedApi()
+     */
     public function getAllWithRelation(
-        int $perPage = 10,
-        int $page = 1,
-        string $search = '',
+        int     $perPage   = 15,
+        int     $page      = 1,
+        string  $search    = '',
+        ?string $type      = null,
+        ?string $dateFrom  = null,
+        ?string $dateTo    = null,
+        ?int    $productId = null,
     ): array {
-        $query = StockMovement::withRelations()
-            ->when($search, function ($q) use ($search) {
-                $q->whereHas('product', function ($p) use ($search) {
-                    $p->where('name', 'like', "%{$search}%")
-                      ->orWhere('sku', 'like', "%{$search}%");
-                });
-            })
+        $query = StockMovement::with([
+                    'product:id,name,sku,category_id',
+                    'product.category:id,name',
+                    'user:id,name'
+                ])
+            ->when($search, fn ($q) =>
+                $q->whereHas('product', fn ($p) =>
+                    $p->where('name', 'ilike', "%{$search}%")
+                      ->orWhere('sku', 'ilike', "%{$search}%")
+                )
+            )
+            ->when($type,      fn ($q) => $q->where('type', $type))
+            ->when($productId, fn ($q) => $q->where('product_id', $productId))
+            ->when($dateFrom,  fn ($q) => $q->whereDate('created_at', '>=', $dateFrom))
+            ->when($dateTo,    fn ($q) => $q->whereDate('created_at', '<=', $dateTo))
             ->latest('created_at');
 
-        /** @var LengthAwarePaginator $paginator */
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
         return [
@@ -46,7 +60,8 @@ class StockMovementRepository
     public function getActiveProducts(): Collection
     {
         return Product::active()
+            ->with('category:id,name')
             ->orderBy('name')
-            ->get(['id', 'name', 'sku', 'stock']);
+            ->get(['id', 'name', 'sku', 'stock', 'min_stock', 'category_id']);
     }
 }

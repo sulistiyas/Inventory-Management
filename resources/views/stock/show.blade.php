@@ -110,7 +110,7 @@
         <div class="card">
             <div class="card-header" style="padding-bottom:0;">
                 <div class="card-title">Produk</div>
-                <a href="{{ route('products.show', $movement->product) }}" style="font-size:12px; color:var(--info); text-decoration:none; font-weight:600;">Lihat →</a>
+                <a href="{{ route('stock.show', $movement->product) }}" style="font-size:12px; color:var(--info); text-decoration:none; font-weight:600;">Lihat →</a>
             </div>
             <div class="card-body" style="padding-top:12px;">
                 <div style="font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">

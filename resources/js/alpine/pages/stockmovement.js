@@ -116,53 +116,72 @@ export default function stockManager() {
                 : this.selectedProduct.stock - qty;
         },
 
-        // ── Submit transaction ───────────────────────────────────
+        // ── Submit ─────────────────────────────────────────────
         async handleSubmit() {
             if (this.isSubmitting) return;
-
-            this.isSubmitting = true;
-            this.errors       = {};
-            this.globalError  = null;
-
-            const url = this.activeTab === 'in'
-                ? '/api/stock/in'
-                : '/api/stock/out';
-
-            try {
-                const res  = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept':       'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify(this.form),
-                });
-                const json = await res.json();
-
-                if (!res.ok) {
-                    if (json.errors) { this.errors = json.errors; return; }
-                    this.globalError = json.message ?? 'Terjadi kesalahan.';
+ 
+                // Validasi client-side dasar
+                this.errors = {};
+                if (!this.form.product_id) {
+                    this.errors.product_id = ['Pilih produk terlebih dahulu.'];
                     return;
                 }
-
-                // Success
-                this.close();
-
-                // Update the selected product's stock in the list
-                if (this.selectedProduct) {
-                    const p = this.allProducts.find(x => x.id === this.form.product_id);
-                    if (p) p.stock = json.data.stock_after;
+                if (!this.form.quantity || this.form.quantity < 1) {
+                    this.errors.quantity = ['Jumlah minimal 1.'];
+                    return;
                 }
-
-                // Reload table
-                await this.loadData();
-
-            } catch (e) {
-                this.globalError = 'Koneksi gagal. Silakan coba lagi.';
-            } finally {
-                this.isSubmitting = false;
-            }
+ 
+                this.isSubmitting = true;
+                this.globalError  = null;
+    
+                try {
+                    const token = document
+                        .querySelector('meta[name="csrf-token"]')
+                        .getAttribute('content');
+    
+                    const url = this.activeTab === 'in'
+                        ? '/api/stock/in'
+                        : '/api/stock/out';
+    
+                    const res  = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type':  'application/json',
+                            'Accept':        'application/json',
+                            'X-CSRF-TOKEN':  token,
+                        },
+                        body: JSON.stringify(this.form),
+                    });
+    
+                    const json = await res.json();
+    
+                    if (!res.ok) {
+                        if (res.status === 422) {
+                            this.errors = json.errors ?? {};
+                        }
+                        throw new Error(json.message || 'Terjadi kesalahan.');
+                    }
+    
+                    // ✅ Sukses — simpan alert ke sessionStorage, lalu reload
+                    sessionStorage.setItem('alert', JSON.stringify({
+                        type:    'success',
+                        message: json.message || (this.activeTab === 'in'
+                            ? 'Stok masuk berhasil disimpan.'
+                            : 'Stok keluar berhasil disimpan.'),
+                    }));
+    
+                    window.location.reload();
+    
+                } catch (e) {
+                    console.error('handleSubmit:', e);
+    
+                    // Kalau bukan error validasi (422), tampilkan global error di modal
+                    if (!this.errors || Object.keys(this.errors).length === 0) {
+                        this.globalError = e.message || 'Terjadi kesalahan. Coba lagi.';
+                    }
+                } finally {
+                    this.isSubmitting = false;
+                }
         },
 
         // ── Detail modal ─────────────────────────────────────────
