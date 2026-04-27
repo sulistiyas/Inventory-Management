@@ -9,6 +9,7 @@ export default function datatable(config = {}) {
         search: '',
         columns: config.columns || [],
         apiEndpoint: config.apiEndpoint || '',
+        filters: config.filters || {},
 
         async fetchData() {
             this.loading = true;
@@ -18,6 +19,10 @@ export default function datatable(config = {}) {
                     page: this.page,
                     perPage: this.perPage,
                     search: this.search
+                });
+
+                Object.entries(this.filters).forEach(([key, value]) => {
+                    if (value) params.set(key, value);
                 });
 
                 const res = await fetch(`${this.apiEndpoint}?${params}`, {
@@ -54,11 +59,57 @@ export default function datatable(config = {}) {
             return (this.page - 1) * this.perPage;
         },
 
+        edit(row) {
+            window.dispatchEvent(new CustomEvent('fill-form', {
+                detail: {
+                    ...row,
+                    password: ''
+                }
+            }));
+        },
+
+        delete(row) {
+            if (row.is_me) return;
+            window.dispatchEvent(new CustomEvent('open-delete', { detail: row }));
+        },
+        async toggle(url, row) {
+            if (row.is_me) return;
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                });
+
+                const json = await res.json();
+
+                if (res.ok) {
+                    row.is_active = json.is_active;
+                } else {
+                    alert(json.message ?? 'Gagal update');
+                }
+
+            } catch {
+                alert('Koneksi gagal');
+            }
+        },
+
+
         init() {
             this.$watch('search', () => {
                 this.page = 1;
                 this.fetchData();
             });
+
+            this.$watch('filters', () => {
+                this.page = 1;
+                this.fetchData();
+            }, { deep: true });
+
 
             this.fetchData();
         },

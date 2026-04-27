@@ -1,13 +1,14 @@
     <?php
 
-    use App\Http\Controllers\Auth\LoginController;
-    use App\Http\Controllers\CategoryController;
-    use App\Http\Controllers\DashboardController;
-    use App\Http\Controllers\ProductController;
-    use App\Http\Controllers\StockController;
-    use App\Http\Controllers\StockMovementController;
-    use App\Http\Controllers\SupplierController;
-    use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StockController;
+use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
 
     /*
     |--------------------------------------------------------------------------
@@ -93,15 +94,14 @@
             Route::post('/store',[StockMovementController::class, 'store'])->name('store');
         });
 
-        // Profile
-        // Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-        // Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-
-        
-
-        // User management — admin only
-        // Route::middleware(['can:admin'])->group(function () {
-        //     Route::resource('users', UserController::class);
-        // });
+        // ── Users (admin only) ────────────────────────────────────────────────────
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/',[UserController::class, 'index'])->name('index');
+            Route::get('/api/data',[UserController::class, 'list'])->name('list');
+            Route::post('/store',[UserController::class, 'store'])->name('store');
+            Route::put('/update/{id}',[UserController::class, 'update'])->name('update');
+            Route::delete('/destroy/{id}',[UserController::class, 'destroy'])->name('destroy');
+            Route::post('/toggle-active/{id}',[UserController::class, 'toggleActive'])->name('toggle-active');
+        });
 
     });

@@ -143,8 +143,8 @@
       <div class="nav-section-label">Admin</div>
 
       <a
-        {{-- href="{{ route('users.index') }}" --}}
-        href="#"
+        href="{{ route('users.index') }}"
+        {{-- href="#" --}}
         class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}"
         data-tooltip="User Management"
       >

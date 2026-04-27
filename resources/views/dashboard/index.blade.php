@@ -10,16 +10,14 @@
   <div>
     <h1 class="page-title">Dashboard</h1>
     <p class="page-subtitle">
-      {{-- Selamat datang, <strong>{{ auth()->user()->name }}</strong> — --}}
-      Selamat datang, <strong>Admin</strong> —
+      Selamat datang, <strong>{{ auth()->user()->name }}</strong> —
+      {{-- Selamat datang, <strong>Admin</strong> — --}}
       {{ now()->translatedFormat('l, d F Y') }}
     </p>
   </div>
   <div style="display:flex; gap:8px; flex-shrink:0;">
-    <a href="#" class="btn btn-primary">
-    {{-- <a href="{{ route('stock.in') }}" class="btn btn-primary"> --}}
-    <a href="#" class="btn btn-primary">
-    {{-- <a href="{{ route('stock.in') }}" class="btn btn-primary"> --}}
+    {{-- <a href="#" class="btn btn-primary"> --}}
+    <a href="{{ route('stock.in') }}" class="btn btn-primary">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Transaksi Masuk
     </a>
@@ -39,7 +37,7 @@
     <div class="stat-card-header">
       <span class="stat-card-label">Total Produk</span>
       <span class="stat-card-icon blue">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
         </svg>
       </span>
