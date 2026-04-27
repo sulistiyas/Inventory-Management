@@ -174,4 +174,4 @@ Project ini menggunakan lisensi MIT.
 
 ---
 
-Happy coding 🚀
+Support me at : (https://sociabuzz.com/sulistiyanugroho/tribe)
