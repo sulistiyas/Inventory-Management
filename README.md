@@ -100,8 +100,6 @@ DB_PASSWORD=your_password
 php artisan migrate
 ```
 
-Jika ada seeder:
-
 ```bash
 php artisan db:seed
 ```
