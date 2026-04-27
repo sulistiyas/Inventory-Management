@@ -8,6 +8,8 @@ use App\Http\Controllers\StockController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
+use App\Services\DashboardService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
     /*
@@ -27,6 +29,14 @@ use Illuminate\Support\Facades\Route;
 
         // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/chart', function (Request $request, DashboardService $service) {
+            $days = (int) $request->get('days', 7);
+            $days = in_array($days, [7, 14, 30]) ? $days : 7;
+
+            return response()->json(
+                $service->getDashboardData($days)['chartData']
+            );
+        })->name('dashboard.chart');
 
         // Categories
         Route::prefix('categories')->group(function () {

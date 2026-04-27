@@ -133,9 +133,9 @@
         <div class="pill-tabs">
           @foreach([7 => '7H', 14 => '14H', 30 => '30H'] as $d => $label)
             <button
-              class="pill-tab {{ $chartDays == $d ? 'active' : '' }}"
-              onclick="window.location.href='{{ route('dashboard', ['days' => $d]) }}'"
-            >
+              class="pill-tab"
+              :class="{ 'active': selectedDays === {{ $d }} }"
+              @click="changeDays({{ $d }})">
               {{ $label }}
             </button>
           @endforeach
@@ -143,8 +143,38 @@
       </div>
     </div>
 
-    <div class="chart-container" style="padding: 16px 20px 20px;">
-      <canvas id="stockChart"></canvas>
+    <div class="chart-container" style="padding:16px 20px 20px; height:320px; position:relative;">
+      <canvas x-ref="canvas"></canvas>
+      <!-- 🔥 LOADING OVERLAY -->
+      <div 
+        x-show="loading"
+        x-transition.opacity
+        style="
+          position:absolute;
+          inset:0;
+          background:rgba(255,255,255,0.7);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          backdrop-filter: blur(2px);
+          z-index:10;
+        "
+      >
+        <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+          
+          <!-- spinner -->
+          <div style="
+            width:28px;
+            height:28px;
+            border:3px solid #e5e7eb;
+            border-top-color:#3b82f6;
+            border-radius:50%;
+            animation: spin 0.8s linear infinite;
+          "></div>
+
+          <span style="font-size:12px; color:#6b7280;">Loading chart...</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -191,7 +221,7 @@
       @if($lowStockCount > $lowStockProducts->count())
         <div style="padding:10px 20px; border-top:1px solid var(--border);">
           {{-- <a href="{{ route('products.index', ['filter' => 'low_stock']) }}" style="font-size:12px; color:var(--info); font-weight:600; text-decoration:none;"> --}}
-          <a href="#ow_stock']) }}" style="font-size:12px; color:var(--info); font-weight:600; text-decoration:none;">
+          <a href="{{ route('products.index', ['filter' => 'low_stock']) }}" style="font-size:12px; color:var(--info); font-weight:600; text-decoration:none;">
             Lihat {{ $lowStockCount - $lowStockProducts->count() }} produk lainnya →
           </a>
         </div>
@@ -302,109 +332,155 @@
 function stockChart() {
   return {
     chart: null,
-
+    isRendering: false,
+    loading: false,
     chartData: @json($chartData),
+    selectedDays: {{ $chartDays }},
 
     init() {
-      this.$nextTick(() => this.render());
+      if (window.__chartInitialized) {
+        console.warn('Chart already initialized globally');
+        return;
+      }
+
+      window.__chartInitialized = true;
+
+      setTimeout(() => this.render(), 100);
+    },
+    async changeDays(days) {
+      this.loading = true;
+      // if (this.selectedDays === days) return;
+
+      this.selectedDays = days;
+
+      try {
+        const res = await fetch(`/dashboard/chart?days=${days}`);
+        const data = await res.json();
+
+        this.chartData = JSON.parse(JSON.stringify(data));
+
+        this.updateChart(); // 🔥 tanpa destroy total
+        this.loading = false;
+      } catch (e) {
+        console.error('Failed fetch chart:', e);
+        this.loading = false;
+      }
     },
 
     render() {
-      const ctx = document.getElementById('stockChart');
-      if (!ctx) return;
-      if (this.chart) this.chart.destroy();
+      // Prevent multiple simultaneous renders
+      if (this.isRendering) {
+        console.log('render already in progress, skipping');
+        return;
+      }
 
-      // Pull CSS variables for consistent theming
-      const style     = getComputedStyle(document.documentElement);
-      const accent    = '#F59E0B';
-      const success   = '#10B981';
-      const danger    = '#EF4444';
-      const gridColor = 'rgba(148,163,184,0.12)';
-      const textColor = style.getPropertyValue('--text-muted').trim() || '#94A3B8';
+      this.isRendering = true;
+      console.log('render called');
 
-      this.chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: this.chartData.labels,
-          datasets: [
-            {
-              label: 'Stok Masuk',
-              data: this.chartData.in,
-              backgroundColor: 'rgba(16,185,129,0.85)',
-              borderColor: success,
-              borderWidth: 0,
-              borderRadius: 5,
-              borderSkipped: false,
+      try {
+        const canvas = this.$refs.canvas;
+        console.log('canvas element:', canvas);
+
+        if (!canvas) {
+          console.error('Canvas element not found');
+          return;
+        }
+
+        // Check if canvas is still in DOM
+        if (!document.contains(canvas)) {
+          console.error('Canvas is not in DOM');
+          return;
+        }
+
+        const ctx = canvas.getContext('2d');
+        console.log('canvas context:', ctx);
+
+        if (!ctx) {
+          console.error('Canvas context not available');
+          return;
+        }
+
+        // Destroy existing chart before creating new one
+        if (this.chart instanceof Chart) {
+          this.chart.destroy();
+        }
+
+        console.log('Creating chart with data:', this.chartData);
+
+        this.chart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: this.chartData.labels,
+            datasets: [
+              {
+                label: 'Stok Masuk',
+                data: this.chartData.in,
+                backgroundColor: 'rgba(16,185,129,0.85)',
+                borderColor: 'rgba(16,185,129,1)',
+                borderWidth: 0,
+                borderRadius: 4,
+              },
+              {
+                label: 'Stok Keluar',
+                data: this.chartData.out,
+                backgroundColor: 'rgba(239,68,68,0.80)',
+                borderColor: 'rgba(239,68,68,1)',
+                borderWidth: 0,
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              duration: 300,
             },
-            {
-              label: 'Stok Keluar',
-              data: this.chartData.out,
-              backgroundColor: 'rgba(239,68,68,0.80)',
-              borderColor: danger,
-              borderWidth: 0,
-              borderRadius: 5,
-              borderSkipped: false,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
-          plugins: {
-            legend: {
-              position: 'top',
-              align: 'end',
-              labels: {
-                boxWidth: 12,
-                boxHeight: 12,
-                borderRadius: 3,
-                useBorderRadius: true,
-                font: { family: "'DM Sans', sans-serif", size: 12, weight: '600' },
-                color: textColor,
-                padding: 16,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                  boxWidth: 12,
+                  padding: 16,
+                  font: { size: 13 },
+                  usePointStyle: false,
+                },
               },
             },
-            tooltip: {
-              backgroundColor: '#0F172A',
-              titleColor: '#E2E8F0',
-              bodyColor: '#94A3B8',
-              borderColor: '#1E293B',
-              borderWidth: 1,
-              padding: 12,
-              cornerRadius: 8,
-              titleFont: { family: "'DM Sans', sans-serif", size: 13, weight: '700' },
-              bodyFont: { family: "'DM Sans', sans-serif", size: 12 },
-              callbacks: {
-                label(ctx) {
-                  return `  ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('id-ID')} unit`;
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1,
+                  precision: 0,
                 },
               },
             },
           },
-          scales: {
-            x: {
-              grid: { display: false },
-              border: { display: false },
-              ticks: {
-                color: textColor,
-                font: { family: "'DM Sans', sans-serif", size: 12 },
-              },
-            },
-            y: {
-              beginAtZero: true,
-              border: { display: false, dash: [4, 4] },
-              grid: { color: gridColor, drawBorder: false },
-              ticks: {
-                color: textColor,
-                font: { family: "'DM Sans', sans-serif", size: 12 },
-                maxTicksLimit: 6,
-                callback: (v) => v.toLocaleString('id-ID'),
-              },
-            },
-          },
-        },
-      });
+        });
+
+        console.log('Chart created successfully');
+      } catch (error) {
+        console.error('Error rendering chart:', error);
+      } finally {
+        this.isRendering = false;
+      }
+    },
+
+    updateChart() {
+      if (!this.chart) return;
+
+      try {
+        this.chart.data.labels = [...this.chartData.labels];
+        this.chart.data.datasets[0].data = [...this.chartData.in];
+        this.chart.data.datasets[1].data = [...this.chartData.out];
+
+        this.chart.update();
+      } catch (e) {
+        console.warn('Update gagal, recreate chart');
+        this.render(); // fallback
+      }
     },
   };
 }
