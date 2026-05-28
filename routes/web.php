@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierController;
@@ -112,6 +113,12 @@ use Illuminate\Support\Facades\Route;
             Route::put('/update/{id}',[UserController::class, 'update'])->name('update');
             Route::delete('/destroy/{id}',[UserController::class, 'destroy'])->name('destroy');
             Route::post('/toggle-active/{id}',[UserController::class, 'toggleActive'])->name('toggle-active');
+        });
+
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/', [ReportController::class, 'index'])->name('index');
+            Route::get('stock-summary', [ReportController::class, 'stockSummary'])->name('stock-summary');
+            Route::get('stock-movement', [ReportController::class, 'stockMovement'])->name('stock-movement');
         });
 
     });
