@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\ServiceOrderController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\SupplierController;
@@ -119,6 +122,41 @@ use Illuminate\Support\Facades\Route;
             Route::get('/', [ReportController::class, 'index'])->name('index');
             Route::get('stock-summary', [ReportController::class, 'stockSummary'])->name('stock-summary');
             Route::get('stock-movement', [ReportController::class, 'stockMovement'])->name('stock-movement');
+        });
+
+        // ── Customers ─────────────────────────────────────────────────────────────
+        Route::prefix('customers')->name('customers.')->group(function () {
+            Route::get('/', [CustomerController::class, 'index'])->name('index');
+            Route::get('/api/data', [CustomerController::class, 'list'])->name('list');
+            Route::get('/{id}', [CustomerController::class, 'show'])->name('show');
+            Route::post('/store', [CustomerController::class, 'store'])->name('store');
+            Route::put('/update/{id}', [CustomerController::class, 'update'])->name('update');
+            Route::delete('/destroy/{id}', [CustomerController::class, 'destroy'])->name('destroy');
+        });
+
+        // ── Sales (POS kasir) ──────────────────────────────────────────────────────
+        Route::prefix('sales')->name('sales.')->group(function () {
+            Route::get('/', [SaleController::class, 'index'])->name('index');
+            Route::get('/api/data', [SaleController::class, 'list'])->name('list');
+            Route::get('/{id}', [SaleController::class, 'show'])->name('show');
+            Route::post('/store', [SaleController::class, 'store'])->name('store');
+            Route::post('/cancel/{id}', [SaleController::class, 'cancel'])->name('cancel');
+            Route::get('/summary/daily', [SaleController::class, 'dailySummary'])->name('daily-summary');
+        });
+
+        // ── API khusus sales (products dropdown kasir) ────────────────────────────
+        Route::prefix('api')->group(function () {
+            Route::get('/sales/products', [SaleController::class, 'apiProducts'])->name('api.sales.products');
+        });
+
+        // ── Service Orders (work order bengkel) ───────────────────────────────────
+        Route::prefix('service-orders')->name('service-orders.')->group(function () {
+            Route::get('/', [ServiceOrderController::class, 'index'])->name('index');
+            Route::get('/api/data', [ServiceOrderController::class, 'list'])->name('list');
+            Route::get('/{id}', [ServiceOrderController::class, 'show'])->name('show');
+            Route::post('/store', [ServiceOrderController::class, 'store'])->name('store');
+            Route::put('/update/{id}', [ServiceOrderController::class, 'update'])->name('update');
+            Route::post('/update-status/{id}', [ServiceOrderController::class, 'updateStatus'])->name('update-status');
         });
 
     });

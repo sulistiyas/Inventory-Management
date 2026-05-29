@@ -2,9 +2,15 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\ServiceOrderController;
 use App\Models\Product;
 use App\Repositories\Eloquent\CategoryRepository;
+use App\Repositories\Eloquent\CustomerRepository;
 use App\Repositories\Eloquent\DashboardRepository;
+use App\Repositories\Eloquent\SaleRepository;
+use App\Repositories\Eloquent\ServiceOrderRepository;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\DashboardRepositoryInterface;
 use Illuminate\Support\Facades\Gate;
@@ -27,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
             CategoryRepositoryInterface::class,
             CategoryRepository::class
         );
+
+        $this->app->bind(CustomerRepository::class, CustomerRepository::class); // auto-resolved
+        $this->app->bind(SaleRepository::class, SaleRepository::class);         // auto-resolved
+        $this->app->bind(ServiceOrderRepository::class, ServiceOrderRepository::class); // auto-resolved
 
         // Add more bindings here as features are built:
         // $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);

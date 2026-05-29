@@ -11,11 +11,17 @@ import modal from './alpine/components/modal';
 import productManager from './alpine/pages/product';
 import stockManager from './alpine/pages/stockmovement';
 import stockForm from './alpine/pages/stock_in_out';
+import posKasir from './alpine/pages/pos_kasir';
+import serviceOrder from './alpine/pages/service_order';
+import customerManager from './alpine/pages/customer';
 
 // register alpine pages
 window.productManager = productManager;
 window.stockManager = stockManager;
 window.stockForm = stockForm;
+window.posKasir        = posKasir;
+window.serviceOrder    = serviceOrder;
+window.customerManager = customerManager;
 
 // register alpine components
 window.datatable = datatable;

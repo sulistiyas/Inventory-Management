@@ -1,5 +1,5 @@
 {{-- =====================================================
-     layouts/partials/sidebar.blade.php
+     components/sidebar.blade.php
      ===================================================== --}}
 <aside
   class="sidebar"
@@ -8,7 +8,6 @@
   {{-- Brand --}}
   <a href="{{ route('dashboard') }}" class="sidebar-brand">
     <div class="sidebar-brand-icon">
-      {{-- Warehouse icon --}}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
         <polyline points="9 22 9 12 15 12 15 22"/>
@@ -40,12 +39,63 @@
       <span class="nav-item-label">Dashboard</span>
     </a>
 
-    {{-- Inventory --}}
+    {{-- ── POS ─────────────────────────────────────────────────────── --}}
+    <div class="nav-section-label">POS</div>
+
+    <a
+      href="{{ route('sales.index') }}"
+      class="nav-item {{ request()->routeIs('sales.*') ? 'active' : '' }}"
+      data-tooltip="Kasir"
+    >
+      <span class="nav-item-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8M12 17v4"/>
+        </svg>
+      </span>
+      <span class="nav-item-label">Kasir</span>
+    </a>
+
+    <a
+      href="{{ route('service-orders.index') }}"
+      class="nav-item {{ request()->routeIs('service-orders.*') ? 'active' : '' }}"
+      data-tooltip="Work Order Servis"
+    >
+      <span class="nav-item-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+      </span>
+      <span class="nav-item-label">Work Order Servis</span>
+      {{-- Badge: WO pending --}}
+      @php $pendingWoCount = $pendingWoCount ?? 0; @endphp
+      @if ($pendingWoCount > 0)
+        <span class="nav-badge">{{ $pendingWoCount }}</span>
+      @endif
+    </a>
+
+    <a
+      href="{{ route('customers.index') }}"
+      class="nav-item {{ request()->routeIs('customers.*') ? 'active' : '' }}"
+      data-tooltip="Pelanggan"
+    >
+      <span class="nav-item-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </span>
+      <span class="nav-item-label">Pelanggan</span>
+    </a>
+
+    {{-- ── Inventory ────────────────────────────────────────────────── --}}
     <div class="nav-section-label">Inventory</div>
 
     <a
-    href="{{ route('products.index') }}"
-    class="nav-item {{ request()->routeIs('products.*') ? 'active' : '' }}"
+      href="{{ route('products.index') }}"
+      class="nav-item {{ request()->routeIs('products.*') ? 'active' : '' }}"
       data-tooltip="Produk"
     >
       <span class="nav-item-icon">
@@ -58,7 +108,6 @@
 
     <a
       href="{{ route('categories.index') }}"
-      {{-- href="#" --}}
       class="nav-item {{ request()->routeIs('categories.*') ? 'active' : '' }}"
       data-tooltip="Kategori"
     >
@@ -86,12 +135,11 @@
       <span class="nav-item-label">Supplier</span>
     </a>
 
-    {{-- Stock --}}
+    {{-- ── Stok ─────────────────────────────────────────────────────── --}}
     <div class="nav-section-label">Stok</div>
 
     <a
       href="{{ route('stock.index') }}"
-      {{-- href="#" --}}
       class="nav-item {{ request()->routeIs('stock.index') ? 'active' : '' }}"
       data-tooltip="Manajemen Stok"
     >
@@ -106,7 +154,6 @@
 
     <a
       href="{{ route('stock.in') }}"
-      {{-- href="#" --}}
       class="nav-item {{ request()->routeIs('stock.in') ? 'active' : '' }}"
       data-tooltip="Transaksi Masuk"
     >
@@ -117,7 +164,6 @@
         </svg>
       </span>
       <span class="nav-item-label">Transaksi Masuk</span>
-      {{-- Badge: low stock count alert --}}
       @php $lowStockCount = $lowStockCount ?? 0; @endphp
       @if ($lowStockCount > 0)
         <span class="nav-badge">{{ $lowStockCount }}</span>
@@ -126,7 +172,6 @@
 
     <a
       href="{{ route('stock.out') }}"
-      {{-- href="#" --}}
       class="nav-item {{ request()->routeIs('stock.out') ? 'active' : '' }}"
       data-tooltip="Transaksi Keluar"
     >
@@ -137,12 +182,15 @@
       </span>
       <span class="nav-item-label">Transaksi Keluar</span>
     </a>
-    {{-- Reports --}}
+
+    {{-- ── Laporan ──────────────────────────────────────────────────── --}}
     <div class="nav-section-label">Laporan</div>
 
-
-    <a href="{{ route('reports.index') }}"
-      class="nav-item {{ request()->routeIs('reports.*') ? 'active' : '' }}"  data-tooltip="Laporan">
+    <a
+      href="{{ route('reports.index') }}"
+      class="nav-item {{ request()->routeIs('reports.*') ? 'active' : '' }}"
+      data-tooltip="Laporan"
+    >
       <span class="nav-item-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -154,13 +202,12 @@
       <span class="nav-item-label">Laporan</span>
     </a>
 
-    {{-- Admin --}}
+    {{-- ── Admin ────────────────────────────────────────────────────── --}}
     @if (auth()->user()->isAdmin())
       <div class="nav-section-label">Admin</div>
 
       <a
         href="{{ route('users.index') }}"
-        {{-- href="#" --}}
         class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}"
         data-tooltip="User Management"
       >
