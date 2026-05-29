@@ -38,6 +38,17 @@
       </span>
       <span class="nav-item-label">Dashboard</span>
     </a>
+    <a
+       href="{{ route('owner.dashboard') }}"
+       class="nav-item {{ request()->routeIs('owner.*') ? 'active' : '' }}"
+       data-tooltip="Owner Dashboard">
+       <span class="nav-item-icon">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+           <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/>
+         </svg>
+       </span>
+       <span class="nav-item-label">Owner Dashboard</span>
+    </a>
 
     {{-- ── POS ─────────────────────────────────────────────────────── --}}
     <div class="nav-section-label">POS</div>

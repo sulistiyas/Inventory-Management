@@ -17,17 +17,19 @@ class DatabaseSeeder extends Seeder
             'name'       => 'Administrator',
             'email'      => 'admin@warehouse.test',
             'password'   => Hash::make('password'),
+            'role'       => 'admin',
             'is_active'  => true,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        DB::statement("UPDATE users SET role = 'admin' WHERE id = ?", [$adminId]);
+        // DB::statement("UPDATE users SET role = 'admin' WHERE id = ?", [$adminId]);
 
         // ── Staff user ────────────────────────────────────────────────────────
         DB::table('users')->insert([
             'name'       => 'Staff User',
             'email'      => 'staff@warehouse.test',
             'password'   => Hash::make('password'),
+            'role'       => 'staff',
             'is_active'  => true,
             'created_at' => now(),
             'updated_at' => now(),
@@ -213,5 +215,8 @@ class DatabaseSeeder extends Seeder
                 ->where('id', $product->id)
                 ->update(['stock' => $currentStock]);
         }
+        
+        // Run POS-related seeder (inserts owner, customers, service orders, sales, etc.)
+        $this->call(PosSeeder::class);
     }
 }

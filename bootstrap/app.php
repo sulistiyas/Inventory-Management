@@ -11,8 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Authentication middleware already registered by default
-        // Authorization (can/cannot) middleware already registered by default
+        // ── Middleware alias ───────────────────────────────────────────────────
+        $middleware->alias([
+            'owner'          => \App\Http\Middleware\OwnerMiddleware::class,
+            'admin_or_owner' => \App\Http\Middleware\AdminOrOwnerMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

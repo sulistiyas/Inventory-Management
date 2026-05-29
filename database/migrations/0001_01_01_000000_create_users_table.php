@@ -12,36 +12,50 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Create the role ENUM type in PostgreSQL first
-        DB::statement("CREATE TYPE user_role AS ENUM ('admin', 'staff')");
- 
+        // Create ENUM type if not exists
+        DB::statement("
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_type
+                    WHERE typname = 'user_role'
+                ) THEN
+                    CREATE TYPE user_role AS ENUM ('admin', 'staff', 'owner');
+                END IF;
+            END
+            $$;
+        ");
+
         Schema::create('users', function (Blueprint $table) {
-            $table->id();                                           // BIGINT, PK, auto-increment
-            $table->string('name', 100);                           // NOT NULL
-            $table->string('email', 150)->unique();                // NOT NULL, UNIQUE
-            $table->string('password', 255);                       // NOT NULL (bcrypt hash)
-            $table->boolean('is_active')->default(true);    
+            $table->id();
+            $table->string('name', 100);
+            $table->string('email', 150)->unique();
+            $table->string('password', 255);
+            $table->boolean('is_active')->default(true);
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
-            $table->timestamps();                                  // created_at, updated_at
+            $table->timestamps();
         });
- 
-        // Add the ENUM column manually (Laravel Blueprint doesn't support PG native ENUMs)
+
+        // Add ENUM column
         DB::statement("
             ALTER TABLE users
             ADD COLUMN role user_role NOT NULL DEFAULT 'staff'
         ");
- 
-        // Add CHECK constraints
+
+        // CHECK constraint
         DB::statement("
             ALTER TABLE users
             ADD CONSTRAINT chk_users_email_format
-            CHECK (email ~* '^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$')
+            CHECK (
+                email ~* '^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$'
+            )
         ");
- 
-        // Index for frequent lookups
-        DB::statement('CREATE INDEX idx_users_email    ON users(email)');
-        DB::statement('CREATE INDEX idx_users_role     ON users(role)');
+
+        // Indexes
+        DB::statement('CREATE INDEX idx_users_email ON users(email)');
+        DB::statement('CREATE INDEX idx_users_role ON users(role)');
         DB::statement('CREATE INDEX idx_users_is_active ON users(is_active)');
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -65,9 +79,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        DB::statement('DROP TYPE IF EXISTS user_role');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
+
+        DB::statement('DROP TYPE IF EXISTS user_role');
     }
 };

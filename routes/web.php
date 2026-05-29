@@ -4,12 +4,14 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OwnerDashboardController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ServiceOrderController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\StockMovementController;
+use App\Http\Controllers\StockNotificationController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UserController;
 use App\Services\DashboardService;
@@ -159,4 +161,36 @@ use Illuminate\Support\Facades\Route;
             Route::post('/update-status/{id}', [ServiceOrderController::class, 'updateStatus'])->name('update-status');
         });
 
+        // Route::prefix('owner')->name('owner.')->group(function () {
+        //     Route::get('/dashboard',             [OwnerDashboardController::class, 'index'])->name('dashboard');
+        //     Route::get('/dashboard/chart',       [OwnerDashboardController::class, 'chartApi'])->name('dashboard.chart');
+        //     Route::get('/dashboard/daily-summary', function (\Illuminate\Http\Request $request) {
+        //         // Endpoint ringan untuk refresh stat cards via Alpine date picker
+        //         $date    = $request->get('date', today()->toDateString());
+        //         $service = app(\App\Services\OwnerDashboardService::class);
+        //         $repo    = app(\App\Repositories\Interfaces\OwnerDashboardRepositoryInterface::class);
+
+        //         return response()->json([
+        //             'success' => true,
+        //             'data'    => [
+        //                 'daily_revenue'           => $repo->getDailyRevenue($date),
+        //                 'daily_transaction_count' => $repo->getDailyTransactionCount($date),
+        //                 'daily_service_count'     => $repo->getDailyServiceOrderCount($date),
+        //             ],
+        //         ]);
+        //     })->name('dashboard.daily-summary');
+
+        //     Route::get('/sales-report', [OwnerDashboardController::class, 'salesReport'])->name('sales-report');
+        // });
+    });
+
+    Route::prefix('owner')->name('owner.')->middleware(['auth', 'admin_or_owner'])->group(function () {
+        Route::get('/dashboard',                [OwnerDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/chart',          [OwnerDashboardController::class, 'chartApi'])->name('dashboard.chart');
+        Route::get('/dashboard/daily-summary',  [OwnerDashboardController::class, 'dailySummary'])->name('dashboard.daily-summary');
+        Route::get('/sales-report',             [OwnerDashboardController::class, 'salesReport'])->name('sales-report');
+    });
+    Route::prefix('notifications')->name('notifications.')->middleware('auth')->group(function () {
+        Route::get('/low-stock',         [StockNotificationController::class, 'getLowStock'])->name('low-stock');
+        Route::post('/dismiss/{product}', [StockNotificationController::class, 'dismiss'])->name('dismiss');
     });

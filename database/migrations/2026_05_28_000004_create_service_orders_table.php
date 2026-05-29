@@ -9,43 +9,63 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("CREATE TYPE service_order_status AS ENUM ('pending', 'in_progress', 'done', 'cancelled')");
+        // Create ENUM if not exists
+        DB::statement("
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1
+                    FROM pg_type
+                    WHERE typname = 'service_order_status'
+                ) THEN
+                    CREATE TYPE service_order_status AS ENUM (
+                        'pending',
+                        'in_progress',
+                        'done',
+                        'cancelled'
+                    );
+                END IF;
+            END
+            $$;
+        ");
 
         Schema::create('service_orders', function (Blueprint $table) {
             $table->id();
-            $table->string('order_no', 50)->unique();          // Contoh: SRV-20260528-001
+
+            $table->string('order_no', 50)->unique();
 
             $table->foreignId('customer_id')
                   ->constrained('customers')
                   ->restrictOnDelete()
                   ->restrictOnUpdate();
 
-            // Ambil dari customer tapi bisa beda (kendaraan titipan, dll)
             $table->string('vehicle_plate', 20);
             $table->string('vehicle_type', 100)->nullable();
 
-            $table->text('complaint');                         // Keluhan pelanggan
-            $table->text('diagnosis')->nullable();             // Diagnosa mekanik
-            $table->text('notes')->nullable();                 // Catatan tambahan
+            $table->text('complaint');
+            $table->text('diagnosis')->nullable();
+            $table->text('notes')->nullable();
 
-            $table->decimal('service_fee', 12, 2)->default(0); // Biaya jasa mekanik
+            $table->decimal('service_fee', 12, 2)->default(0);
             $table->decimal('discount', 12, 2)->default(0);
 
-            // Siapa yang terima & kerjakan
             $table->foreignId('handled_by')
                   ->nullable()
                   ->constrained('users')
                   ->nullOnDelete();
 
             $table->timestamp('finished_at')->nullable();
+
             $table->timestamps();
         });
 
+        // Add ENUM column
         DB::statement("
             ALTER TABLE service_orders
             ADD COLUMN status service_order_status NOT NULL DEFAULT 'pending'
         ");
 
+        // Constraints
         DB::statement("
             ALTER TABLE service_orders
             ADD CONSTRAINT chk_service_orders_service_fee_non_negative
@@ -67,25 +87,29 @@ return new class extends Migration
         DB::statement("
             ALTER TABLE service_orders
             ADD CONSTRAINT chk_service_orders_finished_at_after_created
-            CHECK (finished_at IS NULL OR finished_at >= created_at)
+            CHECK (
+                finished_at IS NULL
+                OR finished_at >= created_at
+            )
         ");
 
-        DB::statement('CREATE INDEX idx_service_orders_customer_id  ON service_orders(customer_id)');
-        DB::statement('CREATE INDEX idx_service_orders_status        ON service_orders(status)');
-        DB::statement('CREATE INDEX idx_service_orders_handled_by    ON service_orders(handled_by)');
-        DB::statement('CREATE INDEX idx_service_orders_created_at    ON service_orders(created_at DESC)');
+        // Indexes
+        DB::statement('CREATE INDEX idx_service_orders_customer_id ON service_orders(customer_id)');
+        DB::statement('CREATE INDEX idx_service_orders_status ON service_orders(status)');
+        DB::statement('CREATE INDEX idx_service_orders_handled_by ON service_orders(handled_by)');
+        DB::statement('CREATE INDEX idx_service_orders_created_at ON service_orders(created_at DESC)');
         DB::statement('CREATE INDEX idx_service_orders_vehicle_plate ON service_orders(vehicle_plate)');
 
-        // Composite: laporan harian status
-        DB::statement('
+        DB::statement("
             CREATE INDEX idx_service_orders_status_created
             ON service_orders(status, created_at DESC)
-        ');
+        ");
     }
 
     public function down(): void
     {
         Schema::dropIfExists('service_orders');
+
         DB::statement('DROP TYPE IF EXISTS service_order_status');
     }
 };

@@ -6,13 +6,17 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ServiceOrderController;
 use App\Models\Product;
+use App\Models\ServiceOrder;
 use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\CustomerRepository;
 use App\Repositories\Eloquent\DashboardRepository;
+use App\Repositories\Eloquent\OwnerDashboardRepository;
 use App\Repositories\Eloquent\SaleRepository;
 use App\Repositories\Eloquent\ServiceOrderRepository;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\DashboardRepositoryInterface;
+use App\Repositories\Interfaces\OwnerDashboardRepositoryInterface;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -38,6 +42,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(SaleRepository::class, SaleRepository::class);         // auto-resolved
         $this->app->bind(ServiceOrderRepository::class, ServiceOrderRepository::class); // auto-resolved
 
+        $this->app->bind(
+            OwnerDashboardRepositoryInterface::class,
+            OwnerDashboardRepository::class
+        );
         // Add more bindings here as features are built:
         // $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
         // $this->app->bind(SupplierRepositoryInterface::class, SupplierRepository::class);
@@ -49,16 +57,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // ── Authorization Gates ────────────────────────────────────────────────────
-        Gate::define('admin', function ($user) {
-            return $user->isAdmin();
-        });
-
-        // ── Share low stock count with ALL views (for sidebar badge + navbar bell) ──
+        // ── Authorization Gates ────────────────────────────────────────────────
+        Gate::define('admin', fn ($user) => $user->isAdmin());
+        Gate::define('owner', fn ($user) => $user->isOwner());
+        Gate::define('admin_or_owner', fn ($user) => $user->isAdminOrOwner());
+ 
+        // ── Share ke semua view ────────────────────────────────────────────────
         View::composer('*', function ($view) {
-            // if (auth()->check()) {
-                $view->with('lowStockCount', \App\Models\Product::lowStock()->count());
-            // }
+            $view->with('lowStockCount',   Product::lowStock()->count());
+ 
+            // Badge pending WO di sidebar (hanya hitung kalau user login)
+            $view->with('pendingWoCount',
+                Auth::check()
+                    ? ServiceOrder::whereIn('status', ['pending', 'in_progress'])->count()
+                    : 0
+            );
         });
     }
 }
