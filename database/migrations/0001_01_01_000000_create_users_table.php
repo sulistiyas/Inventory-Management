@@ -7,19 +7,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    // ← Ini kunci utamanya: jalankan migration ini tanpa transaction wrapper
+    public $withinTransaction = false;
+
     public function up(): void
     {
-        // Create ENUM type if not exists
+        // Create ENUM type if not exists — aman karena tidak dalam transaction
         DB::statement("
             DO $$
             BEGIN
                 IF NOT EXISTS (
-                    SELECT 1
-                    FROM pg_type
-                    WHERE typname = 'user_role'
+                    SELECT 1 FROM pg_type WHERE typname = 'user_role'
                 ) THEN
                     CREATE TYPE user_role AS ENUM ('admin', 'staff', 'owner');
                 END IF;
@@ -38,22 +36,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Add ENUM column
-        DB::statement("
-            ALTER TABLE users
-            ADD COLUMN role user_role NOT NULL DEFAULT 'staff'
-        ");
+        DB::statement("ALTER TABLE users ADD COLUMN role user_role NOT NULL DEFAULT 'staff'");
 
-        // CHECK constraint
         DB::statement("
             ALTER TABLE users
             ADD CONSTRAINT chk_users_email_format
-            CHECK (
-                email ~* '^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$'
-            )
+            CHECK (email ~* '^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$')
         ");
 
-        // Indexes
         DB::statement('CREATE INDEX idx_users_email ON users(email)');
         DB::statement('CREATE INDEX idx_users_role ON users(role)');
         DB::statement('CREATE INDEX idx_users_is_active ON users(is_active)');
@@ -74,15 +64,11 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('sessions');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('users');
-
         DB::statement('DROP TYPE IF EXISTS user_role');
     }
 };
