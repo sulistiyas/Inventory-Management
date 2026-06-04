@@ -174,11 +174,13 @@ class PosSeeder extends Seeder
                 $currentProduct = DB::table('products')
                     ->where('id', $product->id)
                     ->first();
-
+                
                 // Skip kalau stok habis
                 if ($currentProduct->stock <= 0) {
                     continue;
                 }
+
+                
 
                 // Qty tidak boleh melebihi stok
                 $maxQty = min(3, $currentProduct->stock);
@@ -198,7 +200,17 @@ class PosSeeder extends Seeder
                 ];
             }
 
-                $discount   = rand(0, 1) ? rand(1, 5) * 5000 : 0;
+                if (empty($saleItemsData) || $subtotal <= 0) {
+                    continue;
+                }
+
+                // $discount   = rand(0, 1) ? rand(1, 5) * 5000 : 0;
+                // $grandTotal = $subtotal - $discount + $tax;
+                
+                $discountPercent = rand(0, 20); // 0-20%
+                
+                $discount = round($subtotal * ($discountPercent / 100));
+                
                 $tax        = 0;
                 $grandTotal = $subtotal - $discount + $tax;
 

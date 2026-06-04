@@ -2,269 +2,911 @@
 
 @section('title', 'Kasir POS')
 
+@push('styles')
+<style>
+/* ── POS layout ────────────────────────────────────────────────── */
+.pos-shell {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.25rem;
+    height: calc(100vh - var(--navbar-h) - 2.5rem);
+    overflow: hidden;
+}
+
+/* ── Kolom kiri ─────────────────────────────────────────────────── */
+.pos-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ── Tab bar ─────────────────────────────────────────────────────── */
+.pos-tabs {
+    display: flex;
+    border-bottom: 1.5px solid var(--border);
+    padding: 0 1.25rem;
+    flex-shrink: 0;
+}
+
+.pos-tab {
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    margin-bottom: -1.5px;
+    transition: color var(--transition), border-color var(--transition);
+    font-family: var(--font-body);
+}
+
+.pos-tab:hover { color: var(--text-secondary); }
+
+.pos-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+/* ── Search produk ────────────────────────────────────────────── */
+.pos-search-wrap {
+    padding: 0 1.25rem;
+    flex-shrink: 0;
+}
+
+.pos-search {
+    width: 100%;
+    padding: 0.625rem 1rem 0.625rem 2.5rem;
+    border: 1.5px solid var(--border);
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    background: var(--bg-body);
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0.75rem center;
+    background-size: 16px;
+}
+
+.pos-search:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ── Grid produk ──────────────────────────────────────────────── */
+.pos-products {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 0.75rem;
+    padding: 0 1.25rem 1.25rem;
+    align-content: start;
+}
+
+.product-card {
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.875rem;
+    cursor: pointer;
+    transition: border-color var(--transition), box-shadow var(--transition), transform 0.15s;
+    text-align: left;
+}
+
+.product-card:hover:not(:disabled) {
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px var(--accent-glow);
+    transform: translateY(-1px);
+}
+
+.product-card:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.product-card-name {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    line-height: 1.3;
+    margin-bottom: 3px;
+}
+
+.product-card-sku {
+    font-family: var(--font-mono);
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.product-card-price {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.product-card-stock {
+    font-size: 0.73rem;
+    font-weight: 600;
+}
+
+.stock-ok    { color: var(--success); }
+.stock-low   { color: var(--warning); }
+.stock-empty { color: var(--danger); }
+
+/* ── History table (tab riwayat) ──────────────────────────── */
+.pos-history {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.pos-history-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 1.25rem 0.75rem;
+    flex-shrink: 0;
+}
+
+.pos-history-toolbar input {
+    flex: 1;
+    padding: 0.5rem 0.875rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color var(--transition);
+}
+
+.pos-history-toolbar input:focus { border-color: var(--accent); }
+
+.pos-history-table-wrap {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.pos-history-pagination {
+    display: flex;
+    gap: 4px;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.pos-history-pagination button {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 6px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    font-size: 0.8125rem;
+    font-family: var(--font-body);
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: background var(--transition), border-color var(--transition);
+}
+
+.pos-history-pagination button:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.pos-history-pagination button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #451a03;
+    font-weight: 700;
+}
+
+.pos-history-pagination button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Kolom kanan: Keranjang ────────────────────────────────── */
+.pos-cart {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.pos-cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.pos-cart-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.pos-clear-btn {
+    font-size: 0.75rem;
+    color: var(--danger);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background var(--transition);
+}
+
+.pos-clear-btn:hover { background: var(--danger-bg); }
+.pos-clear-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* ── Customer search ────────────────────────────────────────── */
+.pos-customer-wrap {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.pos-customer-input {
+    width: 100%;
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color var(--transition);
+}
+
+.pos-customer-input:focus { border-color: var(--accent); }
+
+.pos-customer-clear {
+    position: absolute;
+    right: 1.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+}
+
+.pos-customer-dropdown {
+    position: absolute;
+    z-index: 50;
+    top: calc(100% - 0.75rem);
+    left: 1.25rem;
+    right: 1.25rem;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.pos-customer-option {
+    padding: 0.5rem 0.875rem;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.pos-customer-option:hover { background: var(--accent-light); }
+
+/* ── Cart items ─────────────────────────────────────────────── */
+.pos-cart-items {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding: 0.5rem 0;
+}
+
+.pos-cart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 120px;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    gap: 0.5rem;
+}
+
+.pos-cart-empty-icon { font-size: 2.25rem; }
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition);
+}
+
+.cart-item:hover { background: var(--bg-body); }
+
+.cart-item-info { flex: 1; min-width: 0; }
+
+.cart-item-name {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cart-item-price {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.qty-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.qty-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-body);
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color var(--transition), color var(--transition);
+    font-weight: 700;
+}
+
+.qty-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.qty-value {
+    width: 26px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+}
+
+.cart-item-subtotal {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    width: 76px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.cart-item-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 2px;
+    border-radius: 3px;
+    transition: color var(--transition), background var(--transition);
+}
+
+.cart-item-remove:hover {
+    color: var(--danger);
+    background: var(--danger-bg);
+}
+
+/* ── Discount & tax fields ─────────────────────────────────── */
+.pos-discount-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.pos-field-label {
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.pos-number-input {
+    width: 100%;
+    padding: 0.4375rem 0.625rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color var(--transition);
+}
+
+.pos-number-input:focus { border-color: var(--accent); }
+
+/* ── Summary ────────────────────────────────────────────────── */
+.pos-summary {
+    background: var(--bg-body);
+    border-top: 1px solid var(--border);
+    padding: 0.875rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.pos-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+}
+
+.pos-summary-row.total {
+    font-size: 1.0625rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    padding-top: 6px;
+    margin-top: 2px;
+    border-top: 1.5px solid var(--border-dark);
+}
+
+.pos-summary-val { font-family: var(--font-mono); }
+.pos-summary-val.discount { color: var(--success); }
+
+/* ── Bayar button ───────────────────────────────────────────── */
+.pos-pay-btn {
+    margin: 0 1.25rem 1.25rem;
+    width: calc(100% - 2.5rem);
+    padding: 0.875rem;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--accent);
+    color: #451a03;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 12px var(--accent-glow);
+    transition: background var(--transition), box-shadow var(--transition), transform 0.15s;
+    flex-shrink: 0;
+}
+
+.pos-pay-btn:hover:not(:disabled) {
+    background: var(--accent-dark);
+    box-shadow: 0 6px 16px rgba(245,158,11,0.4);
+    transform: translateY(-1px);
+}
+
+.pos-pay-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ── Payment modal internals ────────────────────────────────── */
+.pay-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+.pay-select, .pay-amount {
+    padding: 0.5rem 0.75rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    outline: none;
+    width: 100%;
+    transition: border-color var(--transition);
+}
+
+.pay-select:focus, .pay-amount:focus { border-color: var(--accent); }
+
+.pay-remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 1.125rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: color var(--transition);
+}
+
+.pay-remove-btn:hover:not(:disabled) { color: var(--danger); }
+.pay-remove-btn:disabled { opacity: 0.3; }
+
+.add-payment-link {
+    font-size: 0.8125rem;
+    color: var(--info);
+    font-weight: 600;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    padding: 0;
+}
+
+.pay-summary-box {
+    background: var(--bg-body);
+    border-radius: var(--radius-md);
+    padding: 0.875rem 1rem;
+    margin-top: 1rem;
+}
+
+.pay-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    margin-bottom: 4px;
+    color: var(--text-secondary);
+}
+
+.pay-summary-row.total {
+    font-size: 1.0625rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    padding-top: 6px;
+    margin-top: 4px;
+    border-top: 1.5px solid var(--border-dark);
+}
+
+.pay-change-positive { color: var(--success); font-weight: 700; }
+.pay-insufficient { color: var(--danger); font-size: 0.8125rem; margin-top: 4px; }
+
+/* ── Receipt print ──────────────────────────────────────────── */
+/* @media print {
+    body > *:not(#receipt-area) { display: none !important; }
+    #receipt-area { display: block !important; font-family: monospace; }
+} */
+</style>
+@endpush
+
 @section('content')
 
-{{-- Pass paymentMethods dari controller ke Alpine via JSON --}}
 <div
-    x-data="posKasir()"
-    x-init="
-        paymentMethods = {{ $paymentMethods->toJson() }};
-        init();
-    "
+    x-data="posKasir({ paymentMethods: {{ $paymentMethods->toJson() }} })"
+    x-init="init()"
     @keydown.escape.window="closePayment(); closeDetail(); closeReceipt()"
 >
 
-<div style="display:grid;grid-template-columns:1fr 400px;gap:1.25rem;height:calc(100vh - 140px);">
+<div class="pos-shell">
 
     {{-- ================================================================
-         KOLOM KIRI: Produk + Riwayat
+         KOLOM KIRI
     ================================================================ --}}
-    <div style="display:flex;flex-direction:column;gap:1rem;overflow:hidden;">
+    <div class="pos-left">
 
-        {{-- ── Tab header --}}
-        <div style="display:flex;gap:0;border-bottom:2px solid var(--border);">
+        {{-- Tab bar --}}
+        <div class="pos-tabs">
             <button
-                @click="$refs.tab.value='products'"
-                :style="$refs.tab?.value !== 'history' ? 'border-bottom:2px solid var(--primary);color:var(--primary);margin-bottom:-2px;' : ''"
-                style="padding:8px 20px;font-size:.875rem;font-weight:600;background:none;border:none;cursor:pointer;">
+                class="pos-tab"
+                :class="{ active: activeTab === 'products' }"
+                @click="setTab('products')">
                 Produk
             </button>
             <button
-                @click="$refs.tab.value='history'"
-                :style="$refs.tab?.value === 'history' ? 'border-bottom:2px solid var(--primary);color:var(--primary);margin-bottom:-2px;' : ''"
-                style="padding:8px 20px;font-size:.875rem;font-weight:600;background:none;border:none;cursor:pointer;">
+                class="pos-tab"
+                :class="{ active: activeTab === 'history' }"
+                @click="setTab('history')">
                 Riwayat Transaksi
             </button>
-            <input type="hidden" x-ref="tab" value="products">
         </div>
 
-        {{-- ── Tab: Produk --}}
-        <template x-if="!$refs.tab || $refs.tab.value !== 'history'">
-        <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:.75rem;">
+        {{-- ── TAB: Produk ───────────────────────────────────────── --}}
+        <template x-if="activeTab === 'products'">
+            <div style="display:contents;">
 
-            {{-- Search produk --}}
-            <div style="position:relative;">
-                <input
-                    type="text"
-                    x-model="productSearch"
-                    @input="searchProducts()"
-                    placeholder="Cari nama atau SKU produk..."
-                    style="width:100%;padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-size:.875rem;">
+                {{-- Search --}}
+                <div class="pos-search-wrap">
+                    <input
+                        type="text"
+                        class="pos-search"
+                        x-model="productSearch"
+                        @input="searchProducts()"
+                        placeholder="Cari nama atau SKU produk...">
+                </div>
+
+                {{-- Grid produk --}}
+                <div class="pos-products">
+                    <template x-for="p in filteredProducts" :key="p.id">
+                        <button
+                            class="product-card"
+                            @click="addToCart(p)"
+                            :disabled="p.stock <= 0">
+                            <div class="product-card-name" x-text="p.name"></div>
+                            <div class="product-card-sku" x-text="p.sku"></div>
+                            <div class="product-card-price" x-text="formatRp(p.price)"></div>
+                            <div
+                                class="product-card-stock"
+                                :class="p.stock <= 0 ? 'stock-empty' : (p.stock <= 5 ? 'stock-low' : 'stock-ok')"
+                                x-text="p.stock <= 0 ? 'Stok habis' : 'Stok: ' + p.stock">
+                            </div>
+                        </button>
+                    </template>
+
+                    <template x-if="filteredProducts.length === 0">
+                        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);">
+                            <div style="font-size:1.75rem;margin-bottom:.5rem;">🔍</div>
+                            <div style="font-size:.875rem;">Produk tidak ditemukan</div>
+                        </div>
+                    </template>
+                </div>
+
             </div>
-
-            {{-- Grid produk --}}
-            <div style="flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.75rem;align-content:start;">
-                <template x-for="p in filteredProducts" :key="p.id">
-                    <button
-                        @click="addToCart(p)"
-                        :disabled="p.stock <= 0"
-                        :style="p.stock <= 0 ? 'opacity:.5;cursor:not-allowed;' : 'cursor:pointer;'"
-                        style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:left;transition:.15s;"
-                        @mouseover="if($el.style.cursor!=='not-allowed') $el.style.borderColor='var(--primary)'"
-                        @mouseleave="$el.style.borderColor='var(--border)'">
-                        <div style="font-weight:600;font-size:.875rem;line-height:1.3;margin-bottom:4px;" x-text="p.name"></div>
-                        <div style="font-size:.75rem;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:6px;" x-text="p.sku"></div>
-                        <div style="font-weight:700;font-size:.9375rem;font-family:var(--font-mono);" x-text="'Rp ' + Number(p.price).toLocaleString('id-ID')"></div>
-                        <div style="font-size:.75rem;margin-top:4px;"
-                             :style="p.stock <= 0 ? 'color:var(--danger,#dc2626)' : (p.stock <= 5 ? 'color:var(--warning,#d97706)' : 'color:var(--success,#16a34a)')"
-                             x-text="'Stok: ' + p.stock"></div>
-                    </button>
-                </template>
-
-                <template x-if="filteredProducts.length === 0">
-                    <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-muted);font-size:.875rem;">
-                        Produk tidak ditemukan
-                    </div>
-                </template>
-            </div>
-        </div>
         </template>
 
-        {{-- ── Tab: Riwayat --}}
-        <template x-if="$refs.tab?.value === 'history'">
-        <div style="flex:1;overflow:hidden;"
-             x-data="datatable({ apiEndpoint: '{{ route('sales.list') }}', perPage:15, filters:{status:'paid'} })"
-             x-init="init()">
-            <div class="datatable-card" style="height:100%;display:flex;flex-direction:column;">
-                <div style="padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;gap:.5rem;">
-                    <input type="text" x-model="search" placeholder="Cari invoice..."
-                           style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:.8125rem;">
-                    <input type="date" x-model="filters.date_from" @change="page=1;fetchData()"
-                           style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:.8125rem;">
+        {{-- ── TAB: Riwayat ──────────────────────────────────────── --}}
+        <template x-if="activeTab === 'history'">
+            <div class="pos-history">
+
+                {{-- Toolbar --}}
+                <div class="pos-history-toolbar">
+                    <input
+                        type="text"
+                        x-model="historySearch"
+                        @input.debounce.400ms="historyPage=1; fetchHistory()"
+                        placeholder="Cari no. invoice atau pelanggan...">
+                    <input
+                        type="date"
+                        x-model="historyDateFrom"
+                        @change="historyPage=1; fetchHistory()"
+                        style="width:140px;padding:.5rem .625rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.8125rem;outline:none;">
                 </div>
-                <div style="flex:1;overflow-y:auto;">
-                    <table class="datatable-table">
+
+                {{-- Table --}}
+                <div class="pos-history-table-wrap">
+                    <table class="datatable-table" style="min-width:unset;">
                         <thead>
                             <tr>
                                 <th>Invoice</th>
                                 <th>Pelanggan</th>
-                                <th>Total</th>
+                                <th style="text-align:right;">Total</th>
                                 <th>Kasir</th>
                                 <th>Waktu</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <template x-if="loading">
+
+                            <template x-if="historyLoading">
                                 <tr><td colspan="6" class="datatable-loading">Memuat...</td></tr>
                             </template>
-                            <template x-if="!loading && data.length === 0">
-                                <tr><td colspan="6" class="datatable-empty">Belum ada transaksi</td></tr>
-                            </template>
-                            <template x-for="row in data" :key="row.id">
+
+                            <template x-if="!historyLoading && historyData.length === 0">
                                 <tr>
-                                    <td style="font-family:var(--font-mono);font-size:.8rem;" x-text="row.invoice_no"></td>
-                                    <td style="font-size:.8125rem;" x-text="row.customer"></td>
-                                    <td style="font-family:var(--font-mono);font-weight:600;font-size:.8125rem;" x-text="'Rp '+Number(row.grand_total).toLocaleString('id-ID')"></td>
-                                    <td style="font-size:.8125rem;" x-text="row.cashier"></td>
-                                    <td style="font-size:.75rem;color:var(--text-muted);" x-text="row.sold_at"></td>
-                                    <td>
-                                        <button class="dt-btn dt-btn-edit" @click="openDetail(row.id)">Detail</button>
+                                    <td colspan="6" class="datatable-empty">
+                                        <span class="datatable-empty-icon"></span>
+                                        <span class="datatable-empty-text">Belum ada transaksi</span>
                                     </td>
                                 </tr>
                             </template>
+
+                            <template x-for="row in historyData" :key="row.id">
+                                <tr>
+                                    <td style="font-family:var(--font-mono);font-size:.78rem;font-weight:600;" x-text="row.invoice_no"></td>
+                                    <td style="font-size:.8125rem;" x-text="row.customer"></td>
+                                    <td style="font-family:var(--font-mono);font-weight:700;font-size:.8125rem;text-align:right;" x-text="formatRp(row.grand_total)"></td>
+                                    <td style="font-size:.8125rem;" x-text="row.cashier"></td>
+                                    <td style="font-size:.75rem;color:var(--text-muted);" x-text="row.sold_at"></td>
+                                    <td style="white-space:nowrap;">
+                                        <button class="dt-btn dt-btn-edit" @click="openDetail(row.id)">
+                                            Detail
+                                        </button>
+                                        <button
+                                            class="dt-btn"
+                                            style="background:var(--info-bg);color:var(--info);border:1px solid var(--info);"
+                                            @click="printFromHistory(row.id)"
+                                            title="Cetak struk">
+                                            🖨
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+
                         </tbody>
                     </table>
                 </div>
-                <template x-if="lastPage > 1">
-                    <div class="datatable-pagination" style="padding:.5rem;">
-                        <button @click="changePage(page-1)" :disabled="page<=1">‹</button>
-                        <template x-for="p in lastPage" :key="p">
-                            <button :class="{'active':p===page}" @click="changePage(p)" x-text="p"></button>
+
+                {{-- Pagination --}}
+                <template x-if="historyLastPage > 1">
+                    <div class="pos-history-pagination">
+                        <button @click="historyChangePage(historyPage - 1)" :disabled="historyPage <= 1">‹</button>
+                        <template x-for="p in historyLastPage" :key="p">
+                            <button
+                                :class="{ active: p === historyPage }"
+                                @click="historyChangePage(p)"
+                                x-text="p">
+                            </button>
                         </template>
-                        <button @click="changePage(page+1)" :disabled="page>=lastPage">›</button>
+                        <button @click="historyChangePage(historyPage + 1)" :disabled="historyPage >= historyLastPage">›</button>
                     </div>
                 </template>
+
             </div>
-        </div>
         </template>
 
-    </div>{{-- kolom kiri --}}
+    </div>{{-- pos-left --}}
 
 
     {{-- ================================================================
-         KOLOM KANAN: Keranjang + Pelanggan
+         KOLOM KANAN: Keranjang
     ================================================================ --}}
-    <div style="display:flex;flex-direction:column;gap:.75rem;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1rem;overflow:hidden;">
+    <div class="pos-cart">
 
-        {{-- Judul --}}
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <h3 style="font-size:1rem;font-weight:700;margin:0;">Keranjang</h3>
-            <button @click="clearCart()" style="font-size:.75rem;color:var(--danger,#dc2626);background:none;border:none;cursor:pointer;"
-                    :style="cart.length ? '' : 'opacity:.3;cursor:default;'"
-                    :disabled="!cart.length">
+        {{-- Header --}}
+        <div class="pos-cart-header">
+            <span class="pos-cart-title">🛒 Keranjang</span>
+            <button
+                class="pos-clear-btn"
+                @click="clearCart()"
+                :disabled="!cart.length">
                 Kosongkan
             </button>
         </div>
 
         {{-- Pelanggan --}}
-        <div style="position:relative;">
-            <input type="text" x-model="customerSearch"
-                   @input="filterCustomers()"
-                   placeholder="Pelanggan (opsional)..."
-                   style="width:100%;padding:7px 12px;border:1px solid var(--border);border-radius:6px;font-size:.8125rem;">
+        <div class="pos-customer-wrap">
+            <input
+                type="text"
+                class="pos-customer-input"
+                x-model="customerSearch"
+                @input="filterCustomers()"
+                @focus="filterCustomers()"
+                @blur.debounce.200ms="showCustomerDropdown = false"
+                placeholder="Cari pelanggan (opsional)..."
+                autocomplete="off">
+
             <template x-if="selectedCustomer">
-                <button @click="clearCustomer()"
-                        style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1rem;">✕</button>
+                <button class="pos-customer-clear" @click="clearCustomer()">✕</button>
             </template>
-            <template x-if="filteredCustomers.length && customerSearch.length > 0 && !selectedCustomer">
-                <div style="position:absolute;z-index:50;top:100%;left:0;right:0;background:var(--bg);border:1px solid var(--border);border-radius:6px;max-height:150px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);">
-                    <template x-for="c in filteredCustomers.slice(0,6)" :key="c.id">
-                        <div style="padding:7px 12px;cursor:pointer;font-size:.8125rem;"
-                             @mousedown.prevent="selectCustomer(c)"
-                             @mouseover="$el.style.background='var(--bg-subtle)'"
-                             @mouseleave="$el.style.background=''">
-                            <div style="font-weight:500;" x-text="c.name"></div>
-                            <div style="font-size:.75rem;color:var(--text-muted);" x-text="(c.vehicle_plate ?? '') + ' · ' + (c.phone ?? '')"></div>
+
+            <template x-if="showCustomerDropdown">
+                <div class="pos-customer-dropdown">
+                    <template x-for="c in filteredCustomers" :key="c.id">
+                        <div
+                            class="pos-customer-option"
+                            @mousedown.prevent="selectCustomer(c)">
+                            <div style="font-weight:600;font-size:.8125rem;" x-text="c.name"></div>
+                            <div style="font-size:.73rem;color:var(--text-muted);"
+                                 x-text="[c.vehicle_plate, c.phone].filter(Boolean).join(' · ')"></div>
                         </div>
                     </template>
                 </div>
             </template>
         </div>
 
-        {{-- Item keranjang --}}
-        <div style="flex:1;overflow-y:auto;min-height:0;">
+        {{-- Items --}}
+        <div class="pos-cart-items">
 
             <template x-if="cart.length === 0">
-                <div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:.875rem;">
-                    <div style="font-size:2rem;margin-bottom:.5rem;">🛒</div>
-                    Keranjang kosong.<br>Klik produk untuk menambahkan.
+                <div class="pos-cart-empty">
+                    <span class="pos-cart-empty-icon">🛒</span>
+                    <span>Keranjang kosong</span>
+                    <span style="font-size:.75rem;color:var(--text-muted);">Klik produk untuk menambahkan</span>
                 </div>
             </template>
 
-            <template x-for="(item, index) in cart" :key="item.product_id">
-                <div style="display:flex;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--border-light,#f3f4f6);">
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-weight:500;font-size:.8125rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" x-text="item.product_name"></div>
-                        <div style="font-size:.75rem;font-family:var(--font-mono);" x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')"></div>
+            <template x-for="(item, idx) in cart" :key="item.product_id">
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name" x-text="item.product_name"></div>
+                        <div class="cart-item-price" x-text="formatRp(item.price)"></div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:4px;">
-                        <button @click="decreaseQty(index)"
-                                style="width:24px;height:24px;border-radius:4px;border:1px solid var(--border);background:var(--bg-subtle);cursor:pointer;font-size:.875rem;display:flex;align-items:center;justify-content:center;">−</button>
-                        <span style="width:28px;text-align:center;font-size:.875rem;font-weight:600;" x-text="item.qty"></span>
-                        <button @click="increaseQty(index)"
-                                style="width:24px;height:24px;border-radius:4px;border:1px solid var(--border);background:var(--bg-subtle);cursor:pointer;font-size:.875rem;display:flex;align-items:center;justify-content:center;">+</button>
+                    <div class="qty-ctrl">
+                        <button class="qty-btn" @click="decreaseQty(idx)">−</button>
+                        <span class="qty-value" x-text="item.qty"></span>
+                        <button class="qty-btn" @click="increaseQty(idx)">+</button>
                     </div>
-                    <div style="width:80px;text-align:right;font-size:.8125rem;font-family:var(--font-mono);font-weight:600;" x-text="'Rp '+Number(item.qty*item.price).toLocaleString('id-ID')"></div>
-                    <button @click="removeFromCart(index)" style="color:var(--danger,#dc2626);background:none;border:none;cursor:pointer;font-size:1rem;padding:0 4px;">✕</button>
+                    <div class="cart-item-subtotal" x-text="formatRp(item.qty * item.price)"></div>
+                    <button class="cart-item-remove" @click="removeFromCart(idx)">✕</button>
                 </div>
             </template>
+
         </div>
 
-        {{-- Diskon & Tax --}}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.8125rem;">
+        {{-- Diskon & Pajak --}}
+        <div class="pos-discount-row">
             <div>
-                <label style="display:block;margin-bottom:3px;color:var(--text-muted);">Diskon (Rp)</label>
-                <input type="number" x-model="discount" min="0"
-                       style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:.8125rem;">
+                <span class="pos-field-label">Diskon (Rp)</span>
+                <input class="pos-number-input" type="number" x-model="discount" min="0" placeholder="0">
             </div>
             <div>
-                <label style="display:block;margin-bottom:3px;color:var(--text-muted);">Pajak (Rp)</label>
-                <input type="number" x-model="tax" min="0"
-                       style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:.8125rem;">
+                <span class="pos-field-label">Pajak (Rp)</span>
+                <input class="pos-number-input" type="number" x-model="tax" min="0" placeholder="0">
             </div>
         </div>
 
         {{-- Summary --}}
-        <div style="background:var(--bg-subtle);border-radius:8px;padding:10px 14px;font-size:.8125rem;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                <span style="color:var(--text-muted);">Subtotal</span>
-                <span style="font-family:var(--font-mono);" x-text="'Rp ' + Number(subtotal).toLocaleString('id-ID')"></span>
+        <div class="pos-summary">
+            <div class="pos-summary-row">
+                <span>Subtotal</span>
+                <span class="pos-summary-val" x-text="formatRp(subtotal)"></span>
             </div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                <span style="color:var(--text-muted);">Diskon</span>
-                <span style="font-family:var(--font-mono);color:var(--success,#16a34a);" x-text="'- Rp ' + Number(discount||0).toLocaleString('id-ID')"></span>
-            </div>
-            <div style="display:flex;justify-content:space-between;">
-                <span style="color:var(--text-muted);">Pajak</span>
-                <span style="font-family:var(--font-mono);" x-text="'+ Rp ' + Number(tax||0).toLocaleString('id-ID')"></span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-weight:700;font-size:1rem;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
+            <template x-if="parseFloat(discount) > 0">
+                <div class="pos-summary-row">
+                    <span>Diskon</span>
+                    <span class="pos-summary-val discount" x-text="'− ' + formatRp(discount)"></span>
+                </div>
+            </template>
+            <template x-if="parseFloat(tax) > 0">
+                <div class="pos-summary-row">
+                    <span>Pajak</span>
+                    <span class="pos-summary-val" x-text="'+ ' + formatRp(tax)"></span>
+                </div>
+            </template>
+            <div class="pos-summary-row total">
                 <span>Total</span>
-                <span style="font-family:var(--font-mono);" x-text="'Rp ' + Number(grandTotal).toLocaleString('id-ID')"></span>
+                <span class="pos-summary-val" x-text="formatRp(grandTotal)"></span>
             </div>
         </div>
 
-        {{-- Tombol bayar --}}
+        {{-- Bayar button --}}
         <button
+            class="pos-pay-btn"
             @click="openPayment()"
-            :disabled="!cart.length"
-            style="width:100%;padding:12px;border-radius:8px;border:none;background:var(--primary,#2563eb);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;transition:.15s;"
-            :style="!cart.length ? 'opacity:.5;cursor:not-allowed;' : ''">
+            :disabled="!cart.length">
             💳 Bayar
         </button>
 
-    </div>{{-- kolom kanan --}}
+    </div>{{-- pos-cart --}}
 
-</div>{{-- grid --}}
+</div>{{-- pos-shell --}}
 
 
 {{-- ================================================================
      MODAL: Pembayaran
 ================================================================ --}}
 <template x-if="paymentOpen">
-    <div class="modal-backdrop" @click.self="closePayment()">
-        <div class="modal-box" style="max-width:440px;" @click.stop>
+    <div class="modal-backdrop" @click.self="closePayment()"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100">
+        <div class="modal-box" style="max-width:420px;" @click.stop>
 
             <div class="modal-header">
                 <h3 class="modal-title">Pembayaran</h3>
@@ -273,71 +915,111 @@
 
             <div class="modal-body">
 
-                <template x-if="globalError">
-                    <div style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:10px 14px;border-radius:6px;font-size:.875rem;margin-bottom:1rem;" x-text="globalError"></div>
-                </template>
-
-                {{-- Ringkasan --}}
-                <div style="background:var(--bg-subtle);border-radius:8px;padding:12px 14px;margin-bottom:1rem;font-size:.875rem;">
-                    <div style="display:flex;justify-content:space-between;font-weight:700;font-size:1.125rem;">
-                        <span>Total Tagihan</span>
-                        <span style="font-family:var(--font-mono);" x-text="'Rp ' + Number(grandTotal).toLocaleString('id-ID')"></span>
-                    </div>
+                {{-- Tagihan --}}
+                <div style="background:var(--accent-light);border:1.5px solid var(--accent);border-radius:var(--radius-md);padding:12px 16px;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:.875rem;font-weight:600;color:#451a03;">Total Tagihan</span>
+                    <span style="font-family:var(--font-mono);font-size:1.25rem;font-weight:800;color:#451a03;" x-text="formatRp(grandTotal)"></span>
                 </div>
 
-                {{-- Metode pembayaran --}}
-                <div style="margin-bottom:1rem;">
-                    <label style="font-size:.875rem;font-weight:600;display:block;margin-bottom:.5rem;">Metode Pembayaran</label>
+                {{-- Error --}}
+                <template x-if="globalError">
+                    <div style="background:var(--danger-bg);border:1px solid var(--danger);color:var(--danger);padding:10px 14px;border-radius:var(--radius-sm);font-size:.875rem;margin-bottom:1rem;" x-text="globalError"></div>
+                </template>
 
-                    <template x-for="(p, idx) in payments" :key="idx">
-                        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:.5rem;margin-bottom:.5rem;align-items:center;">
-                            <select x-model="p.payment_method_id"
-                                    style="padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:.8125rem;">
-                                <option value="">— Pilih —</option>
+                {{-- Label --}}
+                <div style="font-size:.73rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.625rem;">Metode Pembayaran</div>
+
+                {{-- Baris pembayaran --}}
+                <template x-for="(p, idx) in payments" :key="idx">
+                    <div style="margin-bottom:.625rem;">
+
+                        <div class="pay-row">
+                            {{-- Pilih metode --}}
+                            <select
+                                class="pay-select"
+                                x-model="p.payment_method_id"
+                                @change="onPaymentMethodChange(idx)">
+                                <option value="">— Pilih metode —</option>
                                 <template x-for="m in paymentMethods" :key="m.id">
                                     <option :value="m.id" x-text="m.name"></option>
                                 </template>
                             </select>
-                            <input type="number" x-model.number="p.amount" min="0"
-                                   style="padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:.8125rem;"
-                                   placeholder="Nominal">
-                            <button @click="removePaymentRow(idx)"
-                                    :disabled="payments.length <= 1"
-                                    style="color:var(--danger,#dc2626);background:none;border:none;cursor:pointer;font-size:1.125rem;"
-                                    :style="payments.length<=1 ? 'opacity:.3;cursor:default;' : ''">✕</button>
+
+                            {{-- Nominal dibayar --}}
+                            <div style="position:relative;">
+                                <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:.75rem;color:var(--text-muted);font-family:var(--font-mono);pointer-events:none;">Rp</span>
+                                <input
+                                    type="number"
+                                    class="pay-amount"
+                                    style="padding-left:28px;"
+                                    x-model.number="p.amount"
+                                    min="0"
+                                    :placeholder="isCash(p.payment_method_id) ? 'Nominal diterima' : formatRp(grandTotal).replace('Rp\u00a0','')">
+                            </div>
+
+                            {{-- Hapus baris --}}
+                            <button
+                                class="pay-remove-btn"
+                                @click="removePaymentRow(idx)"
+                                :disabled="payments.length <= 1">✕</button>
+                        </div>
+
+                        {{-- Hint per baris --}}
+                        <template x-if="p.payment_method_id">
+                            <div style="font-size:.73rem;margin-top:3px;padding-left:2px;"
+                                 :style="isCash(p.payment_method_id)
+                                    ? 'color:var(--text-muted)'
+                                    : 'color:var(--info)'">
+                                <template x-if="isCash(p.payment_method_id)">
+                                    <span>💵 Ketik nominal uang yang diterima dari customer</span>
+                                </template>
+                                <template x-if="!isCash(p.payment_method_id)">
+                                    <span>📲 Nominal disesuaikan otomatis dengan tagihan</span>
+                                </template>
+                            </div>
+                        </template>
+
+                    </div>
+                </template>
+
+                {{-- Tambah metode --}}
+                <button class="add-payment-link" @click="addPaymentRow()" style="margin-bottom:1rem;">
+                    + Tambah metode bayar (split payment)
+                </button>
+
+                {{-- Summary --}}
+                <div class="pay-summary-box">
+                    <div class="pay-summary-row">
+                        <span>Total Dibayar</span>
+                        <span style="font-family:var(--font-mono);" x-text="formatRp(totalPaid)"></span>
+                    </div>
+
+                    {{-- Kembalian — hanya tampil kalau ada cash --}}
+                    <template x-if="payments.some(p => isCash(p.payment_method_id))">
+                        <div class="pay-summary-row" :class="change > 0 ? 'pay-change-positive' : ''">
+                            <span>Kembalian (Cash)</span>
+                            <span style="font-family:var(--font-mono);" x-text="formatRp(change)"></span>
                         </div>
                     </template>
 
-                    <button @click="addPaymentRow()"
-                            style="font-size:.8125rem;color:var(--primary);background:none;border:none;cursor:pointer;padding:0;">
-                        + Tambah metode bayar
-                    </button>
-                </div>
+                    {{-- Kurang bayar --}}
+                    <template x-if="!isPaymentSufficient && totalPaid > 0">
+                        <div style="display:flex;justify-content:space-between;color:var(--danger);font-size:.875rem;margin-top:4px;">
+                            <span>⚠ Kurang</span>
+                            <span style="font-family:var(--font-mono);font-weight:700;" x-text="formatRp(grandTotal - totalPaid)"></span>
+                        </div>
+                    </template>
 
-                {{-- Kembalian --}}
-                <div style="display:flex;justify-content:space-between;font-size:.875rem;margin-bottom:.25rem;">
-                    <span style="color:var(--text-muted);">Total Dibayar</span>
-                    <span style="font-family:var(--font-mono);" x-text="'Rp ' + Number(totalPaid).toLocaleString('id-ID')"></span>
                 </div>
-                <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;"
-                     :style="change > 0 ? 'color:var(--success,#16a34a)' : ''">
-                    <span>Kembalian</span>
-                    <span style="font-family:var(--font-mono);" x-text="'Rp ' + Number(change).toLocaleString('id-ID')"></span>
-                </div>
-
-                <template x-if="!isPaymentSufficient && totalPaid > 0">
-                    <div style="color:var(--danger,#dc2626);font-size:.8125rem;margin-top:.5rem;">
-                        Kurang: <span style="font-family:var(--font-mono);font-weight:600;" x-text="'Rp ' + Number(grandTotal - totalPaid).toLocaleString('id-ID')"></span>
-                    </div>
-                </template>
 
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="modal-btn-cancel" @click="closePayment()" :disabled="isSubmitting">Batal</button>
-                <button type="button" class="modal-btn-submit"
-                        @click="submitSale()"
-                        :disabled="isSubmitting || !isPaymentSufficient">
+                <button class="modal-btn-cancel" @click="closePayment()" :disabled="isSubmitting">Batal</button>
+                <button
+                    class="modal-btn-submit"
+                    @click="submitSale()"
+                    :disabled="isSubmitting || !isPaymentSufficient">
                     <template x-if="isSubmitting"><span>Memproses...</span></template>
                     <template x-if="!isSubmitting"><span>✓ Konfirmasi Bayar</span></template>
                 </button>
@@ -348,25 +1030,26 @@
 </template>
 
 
+
 {{-- ================================================================
      MODAL: Struk (Receipt)
 ================================================================ --}}
 <template x-if="receiptOpen">
     <div class="modal-backdrop" @click.self="closeReceipt()">
-        <div class="modal-box" style="max-width:360px;" @click.stop>
+        <div class="modal-box" style="max-width:380px;" @click.stop>
 
             <div class="modal-header">
-                <h3 class="modal-title">Transaksi Berhasil ✓</h3>
+                <h3 class="modal-title">✅ Transaksi Berhasil</h3>
                 <button class="modal-close-btn" @click="closeReceipt()" type="button"></button>
             </div>
 
-            <div class="modal-body" id="receipt-print-area">
+            <div class="modal-body" id="receipt-area">
                 <template x-if="receiptData">
-                    <div style="font-size:.8125rem;font-family:var(--font-mono);">
+                    <div style="font-family:var(--font-mono);font-size:.8125rem;">
 
-                        <div style="text-align:center;margin-bottom:.75rem;">
-                            <div style="font-weight:700;font-size:.9375rem;">STRUK PEMBAYARAN</div>
-                            <div style="color:var(--text-muted);" x-text="receiptData.invoice_no"></div>
+                        <div style="text-align:center;margin-bottom:1rem;">
+                            <div style="font-weight:700;font-size:.9375rem;letter-spacing:.05em;">STRUK PEMBAYARAN</div>
+                            <div style="color:var(--text-muted);font-size:.8125rem;" x-text="receiptData.invoice_no"></div>
                             <div style="color:var(--text-muted);font-size:.75rem;" x-text="receiptData.sold_at"></div>
                         </div>
 
@@ -377,49 +1060,55 @@
                             </div>
                         </template>
 
-                        <div style="margin-bottom:.5rem;padding-bottom:.5rem;border-bottom:1px dashed var(--border);">
+                        <div style="border-bottom:1px dashed var(--border);padding-bottom:.5rem;margin-bottom:.5rem;">
                             <template x-for="item in receiptData.items" :key="item.product_id">
                                 <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                                    <span style="flex:1;" x-text="item.product_name + ' x' + item.qty"></span>
-                                    <span x-text="'Rp ' + Number(item.subtotal).toLocaleString('id-ID')"></span>
+                                    <span x-text="item.product_name + ' ×' + item.qty"></span>
+                                    <span x-text="formatRp(item.subtotal)"></span>
                                 </div>
                             </template>
                         </div>
 
-                        <div style="display:flex;justify-content:space-between;"><span>Subtotal</span><span x-text="'Rp ' + Number(receiptData.subtotal).toLocaleString('id-ID')"></span></div>
+                        <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+                            <span>Subtotal</span>
+                            <span x-text="formatRp(receiptData.subtotal)"></span>
+                        </div>
                         <template x-if="receiptData.discount > 0">
-                            <div style="display:flex;justify-content:space-between;"><span>Diskon</span><span x-text="'- Rp ' + Number(receiptData.discount).toLocaleString('id-ID')"></span></div>
+                            <div style="display:flex;justify-content:space-between;margin-bottom:2px;color:var(--success);">
+                                <span>Diskon</span>
+                                <span x-text="'− ' + formatRp(receiptData.discount)"></span>
+                            </div>
                         </template>
-                        <template x-if="receiptData.tax > 0">
-                            <div style="display:flex;justify-content:space-between;"><span>Pajak</span><span x-text="'+ Rp ' + Number(receiptData.tax).toLocaleString('id-ID')"></span></div>
-                        </template>
-                        <div style="display:flex;justify-content:space-between;font-weight:700;font-size:.9375rem;margin-top:4px;padding-top:4px;border-top:1px dashed var(--border);">
-                            <span>TOTAL</span><span x-text="'Rp ' + Number(receiptData.grand_total).toLocaleString('id-ID')"></span>
+                        <div style="display:flex;justify-content:space-between;font-weight:700;font-size:.9375rem;border-top:1px dashed var(--border);padding-top:6px;margin-top:4px;">
+                            <span>TOTAL</span>
+                            <span x-text="formatRp(receiptData.grand_total)"></span>
                         </div>
 
-                        <div style="margin-top:.5rem;padding-top:.5rem;border-top:1px dashed var(--border);">
+                        <div style="border-top:1px dashed var(--border);margin-top:.5rem;padding-top:.5rem;">
                             <template x-for="p in receiptData.payments" :key="p.method">
-                                <div style="display:flex;justify-content:space-between;">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
                                     <span x-text="p.method"></span>
-                                    <span x-text="'Rp ' + Number(p.amount).toLocaleString('id-ID')"></span>
+                                    <span x-text="formatRp(p.amount)"></span>
                                 </div>
                             </template>
                             <template x-if="receiptData.payments?.[0]?.change_amount > 0">
-                                <div style="display:flex;justify-content:space-between;margin-top:3px;">
+                                <div style="display:flex;justify-content:space-between;color:var(--success);font-weight:600;">
                                     <span>Kembalian</span>
-                                    <span x-text="'Rp ' + Number(receiptData.payments[0].change_amount).toLocaleString('id-ID')"></span>
+                                    <span x-text="formatRp(receiptData.payments[0].change_amount)"></span>
                                 </div>
                             </template>
                         </div>
 
-                        <div style="text-align:center;margin-top:.75rem;color:var(--text-muted);font-size:.75rem;">Terima kasih!</div>
+                        <div style="text-align:center;margin-top:.875rem;color:var(--text-muted);font-size:.75rem;">
+                            Terima kasih! 🙏
+                        </div>
                     </div>
                 </template>
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="modal-btn-cancel" @click="closeReceipt()">Tutup</button>
-                <button type="button" class="modal-btn-submit" @click="printReceipt()">🖨 Print Struk</button>
+                <button class="modal-btn-cancel" @click="closeReceipt()">Tutup</button>
+                <button class="modal-btn-submit" @click="printReceipt()">🖨 Print Struk</button>
             </div>
 
         </div>
@@ -433,66 +1122,81 @@
 <template x-if="detailOpen">
     <div class="modal-backdrop" @click.self="closeDetail()">
         <div class="modal-box" style="max-width:500px;" @click.stop>
+
             <div class="modal-header">
                 <h3 class="modal-title">Detail Transaksi</h3>
                 <button class="modal-close-btn" @click="closeDetail()" type="button"></button>
             </div>
+
             <div class="modal-body">
                 <template x-if="detailLoading">
-                    <div style="text-align:center;padding:2rem;color:var(--text-muted);">Memuat...</div>
+                    <div style="text-align:center;padding:2.5rem;color:var(--text-muted);">Memuat...</div>
                 </template>
+
                 <template x-if="!detailLoading && detailData">
                     <div style="font-size:.875rem;">
+
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem;">
-                            <div><span style="color:var(--text-muted);">Invoice</span><br><strong style="font-family:var(--font-mono);" x-text="detailData.invoice_no"></strong></div>
-                            <div><span style="color:var(--text-muted);">Kasir</span><br><span x-text="detailData.cashier"></span></div>
-                            <div><span style="color:var(--text-muted);">Pelanggan</span><br><span x-text="detailData.customer?.name ?? 'Umum'"></span></div>
-                            <div><span style="color:var(--text-muted);">Waktu</span><br><span x-text="detailData.sold_at"></span></div>
+                            <div>
+                                <div style="font-size:.73rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Invoice</div>
+                                <div style="font-family:var(--font-mono);font-weight:700;" x-text="detailData.invoice_no"></div>
+                            </div>
+                            <div>
+                                <div style="font-size:.73rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Kasir</div>
+                                <div x-text="detailData.cashier"></div>
+                            </div>
+                            <div>
+                                <div style="font-size:.73rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Pelanggan</div>
+                                <div x-text="detailData.customer?.name ?? 'Umum'"></div>
+                            </div>
+                            <div>
+                                <div style="font-size:.73rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Waktu</div>
+                                <div x-text="detailData.sold_at"></div>
+                            </div>
                         </div>
-                        <table style="width:100%;font-size:.8125rem;border-collapse:collapse;margin-bottom:.75rem;">
-                            <thead><tr style="border-bottom:1px solid var(--border);">
-                                <th style="text-align:left;padding:4px 0;">Item</th>
-                                <th style="text-align:right;padding:4px 0;">Qty</th>
-                                <th style="text-align:right;padding:4px 0;">Subtotal</th>
-                            </tr></thead>
+
+                        <table class="datatable-table" style="min-width:unset;margin-bottom:.75rem;">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th style="text-align:right;">Qty</th>
+                                    <th style="text-align:right;">Harga</th>
+                                    <th style="text-align:right;">Subtotal</th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 <template x-for="item in detailData.items" :key="item.product_id">
-                                    <tr style="border-bottom:1px solid var(--border-light,#f3f4f6);">
-                                        <td style="padding:4px 0;" x-text="item.product_name"></td>
-                                        <td style="text-align:right;padding:4px 0;" x-text="item.qty"></td>
-                                        <td style="text-align:right;padding:4px 0;font-family:var(--font-mono);" x-text="'Rp '+Number(item.subtotal).toLocaleString('id-ID')"></td>
+                                    <tr>
+                                        <td x-text="item.product_name"></td>
+                                        <td style="text-align:right;" x-text="item.qty"></td>
+                                        <td style="text-align:right;font-family:var(--font-mono);" x-text="formatRp(item.price)"></td>
+                                        <td style="text-align:right;font-family:var(--font-mono);font-weight:700;" x-text="formatRp(item.subtotal)"></td>
                                     </tr>
                                 </template>
                             </tbody>
                         </table>
-                        <div style="display:flex;justify-content:space-between;font-weight:700;font-size:1rem;">
+
+                        <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:800;border-top:1.5px solid var(--border-dark);padding-top:8px;">
                             <span>Total</span>
-                            <span style="font-family:var(--font-mono);" x-text="'Rp '+Number(detailData.grand_total).toLocaleString('id-ID')"></span>
+                            <span style="font-family:var(--font-mono);" x-text="formatRp(detailData.grand_total)"></span>
                         </div>
+
                         <div style="margin-top:.75rem;">
+                            <div style="font-size:.73rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Pembayaran</div>
                             <template x-for="p in detailData.payments" :key="p.method">
-                                <div style="display:flex;justify-content:space-between;font-size:.8125rem;">
-                                    <span style="color:var(--text-muted);" x-text="p.method"></span>
-                                    <span style="font-family:var(--font-mono);" x-text="'Rp '+Number(p.amount).toLocaleString('id-ID')"></span>
+                                <div style="display:flex;justify-content:space-between;font-size:.8125rem;margin-bottom:3px;">
+                                    <span style="color:var(--text-secondary);" x-text="p.method"></span>
+                                    <span style="font-family:var(--font-mono);" x-text="formatRp(p.amount)"></span>
                                 </div>
                             </template>
                         </div>
                     </div>
                 </template>
             </div>
+
         </div>
     </div>
 </template>
 
 </div>{{-- posKasir --}}
-
-@push('styles')
-<style>
-@media print {
-    body > *:not(#receipt-print-area) { display: none !important; }
-    #receipt-print-area { display: block !important; }
-}
-</style>
-@endpush
-
 @endsection
