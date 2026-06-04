@@ -11,6 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
         // ── Middleware alias ───────────────────────────────────────────────────
         $middleware->alias([
             'owner'          => \App\Http\Middleware\OwnerMiddleware::class,

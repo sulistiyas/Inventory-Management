@@ -10,7 +10,9 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23F59E0B'/><path d='M8 22V12l8-4 8 4v10l-8 4-8-4z' fill='none' stroke='white' stroke-width='1.5'/></svg>" />
 
   {{-- CSS --}}
-  <link rel="stylesheet" href="{{ asset('css/app.css') }}" />
+  @vite(['resources/css/app.css'])
+
+  {{-- Alpine.js --}}
 
   <style>
     /* ── Login Page Styles ─────────────────────────────────────── */
