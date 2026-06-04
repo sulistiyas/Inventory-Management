@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    public $withinTransaction = false;
+
     public function up(): void
     {
         // Tabel ini menyimpan kapan terakhir kali user "dismiss" notifikasi low stock
