@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="csrf-token" content="{{ csrf_token() }}" />
   <title>@yield('title', 'Dashboard') — WarehouSe</title>
-  @vite(['resources/js/app.js'])
+  @vite(['resources/js/app.js','resources/css/app.css'])
 
   {{-- Favicon --}}
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23F59E0B'/><path d='M8 22V12l8-4 8 4v10l-8 4-8-4z' fill='none' stroke='white' stroke-width='1.5'/></svg>" />
 
   {{-- CSS --}}
-  <link rel="stylesheet" href="{{ asset('css/app.css') }}" />
+  {{-- <link rel="stylesheet" href="{{ asset('css/app.css') }}" />
   <link rel="stylesheet" href="{{ asset('css/components/modal.css') }}" />
   <link rel="stylesheet" href="{{ asset('css/components/datatable.css') }}" />
-  <link rel="stylesheet" href="{{ asset('css/components/toast.css') }}" />
+  <link rel="stylesheet" href="{{ asset('css/components/toast.css') }}" /> --}}
 
 
   {{-- Alpine.js --}}
