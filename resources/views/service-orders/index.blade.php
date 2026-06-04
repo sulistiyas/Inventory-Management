@@ -152,53 +152,76 @@
     ================================================================ --}}
     <template x-if="formOpen">
         <div class="modal-backdrop" @click.self="closeForm()"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100">
             <div class="modal-box" style="max-width:680px;" @click.stop>
 
                 <div class="modal-header">
-                    <h3 class="modal-title">Buat Work Order</h3>
+                    <h3 class="modal-title">🔧 Buat Work Order</h3>
                     <button class="modal-close-btn" @click="closeForm()" type="button"></button>
                 </div>
 
-                <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+                <div class="modal-body">
                     <form @submit.prevent="submitForm()">
+                    <div class="modal-form-group">
 
                         {{-- Global error --}}
                         <template x-if="globalError">
-                            <div style="background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:10px 14px;border-radius:6px;font-size:.875rem;margin-bottom:1rem;" x-text="globalError"></div>
+                            <div style="background:var(--danger-bg);border:1px solid var(--danger);color:var(--danger);padding:10px 14px;border-radius:var(--radius-sm);font-size:.875rem;margin-bottom:1rem;" x-text="globalError"></div>
                         </template>
 
-                        {{-- Pelanggan --}}
+                        {{-- ── Pelanggan ──────────────────────────────────── --}}
                         <div class="modal-field" style="position:relative;">
                             <label>Pelanggan <span class="modal-required">*</span></label>
-                            <input type="text" x-model="customerSearch"
-                                   @input="filterCustomers()"
-                                   placeholder="Cari nama, HP, atau plat kendaraan..."
-                                   autocomplete="off">
+                            <input
+                                type="text"
+                                x-model="customerSearch"
+                                @input="filterCustomers()"
+                                @focus="if(customerSearch && !selectedCustomer) filterCustomers()"
+                                @blur.debounce.200ms="if(selectedCustomer) filteredCustomers=[]"
+                                placeholder="Cari nama, HP, atau plat kendaraan..."
+                                autocomplete="off">
                             <template x-if="errors.customer_id">
                                 <span class="modal-field-error" x-text="errors.customer_id[0]"></span>
                             </template>
+
+                            {{-- Dropdown pelanggan --}}
                             <template x-if="filteredCustomers.length && customerSearch.length > 0 && !selectedCustomer">
-                                <div style="position:absolute;z-index:50;top:100%;left:0;right:0;background:var(--bg);border:1px solid var(--border);border-radius:6px;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);">
+                                <div style="position:absolute;z-index:100;top:100%;left:0;right:0;background:var(--bg-card);border:1.5px solid var(--accent);border-radius:var(--radius-md);max-height:200px;overflow-y:auto;box-shadow:var(--shadow-md);margin-top:2px;">
                                     <template x-for="c in filteredCustomers.slice(0,8)" :key="c.id">
-                                        <div style="padding:8px 12px;cursor:pointer;font-size:.875rem;"
-                                             @mousedown.prevent="selectCustomer(c)"
-                                             @mouseover="$el.style.background='var(--bg-subtle)'"
-                                             @mouseleave="$el.style.background=''">
-                                            <div style="font-weight:500;" x-text="c.name"></div>
-                                            <div style="font-size:.75rem;color:var(--text-muted);" x-text="(c.vehicle_plate ?? '') + ' · ' + (c.phone ?? '')"></div>
+                                        <div
+                                            style="padding:10px 14px;cursor:pointer;transition:background var(--transition);border-bottom:1px solid var(--border);"
+                                            @mousedown.prevent="selectCustomer(c)"
+                                            @mouseover="$el.style.background='var(--accent-light)'"
+                                            @mouseleave="$el.style.background=''">
+                                            <div style="font-weight:600;font-size:.875rem;color:var(--text-primary);" x-text="c.name"></div>
+                                            <div style="font-size:.75rem;color:var(--text-muted);margin-top:1px;font-family:var(--font-mono);" x-text="[c.vehicle_plate, c.phone].filter(Boolean).join(' · ')"></div>
                                         </div>
                                     </template>
                                 </div>
                             </template>
+
+                            {{-- Badge pelanggan terpilih --}}
+                            <template x-if="selectedCustomer">
+                                <div style="display:flex;align-items:center;gap:8px;margin-top:6px;padding:8px 12px;background:var(--accent-light);border-radius:var(--radius-sm);border:1px solid var(--accent);">
+                                    <div style="flex:1;">
+                                        <span style="font-weight:600;font-size:.8125rem;color:#451a03;" x-text="selectedCustomer.name"></span>
+                                        <span style="font-size:.75rem;color:#92400E;margin-left:8px;font-family:var(--font-mono);" x-text="selectedCustomer.vehicle_plate ?? ''"></span>
+                                    </div>
+                                    <button type="button" @click="selectedCustomer=null; form.customer_id=''; form.vehicle_plate=''; form.vehicle_type=''; customerSearch=''; filteredCustomers=allCustomers;"
+                                        style="background:none;border:none;cursor:pointer;color:#92400E;font-size:1rem;line-height:1;padding:0;">✕</button>
+                                </div>
+                            </template>
                         </div>
 
+                        {{-- ── Plat & Tipe Kendaraan ──────────────────────── --}}
                         <div class="modal-field-row">
                             <div>
                                 <label>Plat Kendaraan <span class="modal-required">*</span></label>
                                 <input type="text" x-model="form.vehicle_plate"
-                                       placeholder="B 1234 ABC" style="text-transform:uppercase;">
+                                    placeholder="B 1234 ABC"
+                                    style="text-transform:uppercase;font-family:var(--font-mono);">
                                 <template x-if="errors.vehicle_plate">
                                     <span class="modal-field-error" x-text="errors.vehicle_plate[0]"></span>
                                 </template>
@@ -209,6 +232,7 @@
                             </div>
                         </div>
 
+                        {{-- ── Keluhan ─────────────────────────────────────── --}}
                         <div class="modal-field">
                             <label>Keluhan <span class="modal-required">*</span></label>
                             <textarea x-model="form.complaint" rows="2" placeholder="Deskripsi keluhan pelanggan..."></textarea>
@@ -217,111 +241,145 @@
                             </template>
                         </div>
 
+                        {{-- ── Diagnosa ────────────────────────────────────── --}}
                         <div class="modal-field">
                             <label>Diagnosa</label>
                             <textarea x-model="form.diagnosis" rows="2" placeholder="Diagnosa mekanik (opsional)..."></textarea>
                         </div>
 
+                        {{-- ── Biaya Jasa & Diskon ─────────────────────────── --}}
                         <div class="modal-field-row">
                             <div>
                                 <label>Biaya Jasa (Rp)</label>
-                                <input type="number" x-model="form.service_fee" min="0" placeholder="0">
+                                <input type="number" x-model="form.service_fee" min="0" placeholder="0" style="font-family:var(--font-mono);">
                             </div>
                             <div>
                                 <label>Diskon (Rp)</label>
-                                <input type="number" x-model="form.discount" min="0" placeholder="0">
+                                <input type="number" x-model="form.discount" min="0" placeholder="0" style="font-family:var(--font-mono);">
                             </div>
                         </div>
 
-                        {{-- Spare Parts --}}
-                        <div class="modal-field" style="margin-top:1rem;">
+                        {{-- ── Spare Part ──────────────────────────────────── --}}
+                        <div class="modal-field">
                             <label>Spare Part</label>
 
-                            <div style="position:relative;margin-bottom:.5rem;">
-                                <input type="text" x-model="productSearch"
-                                       @input="filterProducts()"
-                                       placeholder="Cari dan tambah spare part..."
-                                       autocomplete="off">
+                            {{-- Search spare part --}}
+                            <div style="position:relative;">
+                                <input
+                                    type="text"
+                                    x-model="productSearch"
+                                    @input="filterProducts()"
+                                    placeholder="Cari dan tambah spare part..."
+                                    autocomplete="off">
+
                                 <template x-if="filteredProducts.length && productSearch.length > 0">
-                                    <div style="position:absolute;z-index:50;top:100%;left:0;right:0;background:var(--bg);border:1px solid var(--border);border-radius:6px;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);">
+                                    <div style="position:absolute;z-index:100;top:100%;left:0;right:0;background:var(--bg-card);border:1.5px solid var(--accent);border-radius:var(--radius-md);max-height:200px;overflow-y:auto;box-shadow:var(--shadow-md);margin-top:2px;">
                                         <template x-for="p in filteredProducts.slice(0,8)" :key="p.id">
-                                            <div style="padding:8px 12px;cursor:pointer;font-size:.875rem;display:flex;justify-content:space-between;align-items:center;"
-                                                 @mousedown.prevent="addItem(p)"
-                                                 @mouseover="$el.style.background='var(--bg-subtle)'"
-                                                 @mouseleave="$el.style.background=''">
+                                            <div
+                                                style="padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);transition:background var(--transition);"
+                                                @mousedown.prevent="addItem(p)"
+                                                @mouseover="$el.style.background='var(--accent-light)'"
+                                                @mouseleave="$el.style.background=''">
                                                 <div>
-                                                    <span style="font-weight:500;" x-text="p.name"></span>
-                                                    <span style="font-size:.75rem;color:var(--text-muted);margin-left:6px;" x-text="p.sku"></span>
+                                                    <span style="font-weight:600;font-size:.875rem;color:var(--text-primary);" x-text="p.name"></span>
+                                                    <span style="font-size:.75rem;color:var(--text-muted);margin-left:6px;font-family:var(--font-mono);" x-text="p.sku"></span>
                                                 </div>
-                                                <span style="font-size:.75rem;color:var(--text-muted);" x-text="'Stok: ' + p.stock"></span>
+                                                <div style="text-align:right;flex-shrink:0;margin-left:12px;">
+                                                    <div style="font-family:var(--font-mono);font-size:.8125rem;font-weight:700;color:var(--text-primary);" x-text="'Rp ' + Number(p.price).toLocaleString('id-ID')"></div>
+                                                    <div :class="p.stock <= 0 ? 'stock-indicator out' : (p.stock <= 5 ? 'stock-indicator low' : 'stock-indicator ok')"
+                                                        style="margin-top:2px;"
+                                                        x-text="'Stok: ' + p.stock"></div>
+                                                </div>
                                             </div>
                                         </template>
                                     </div>
                                 </template>
                             </div>
 
+                            {{-- Tabel spare part yang ditambahkan --}}
                             <template x-if="items.length > 0">
-                                <table style="width:100%;font-size:.8125rem;border-collapse:collapse;">
-                                    <thead>
-                                        <tr style="border-bottom:1px solid var(--border);">
-                                            <th style="text-align:left;padding:4px 6px;">Part</th>
-                                            <th style="text-align:right;padding:4px 6px;">Harga</th>
-                                            <th style="text-align:center;padding:4px 6px;">Qty</th>
-                                            <th style="text-align:right;padding:4px 6px;">Subtotal</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-for="(item, idx) in items" :key="idx">
-                                            <tr style="border-bottom:1px solid var(--border-light,#f3f4f6);">
-                                                <td style="padding:6px;">
-                                                    <div x-text="item.product_name"></div>
-                                                    <div style="color:var(--text-muted);font-size:.75rem;" x-text="item.product_sku"></div>
-                                                </td>
-                                                <td style="text-align:right;padding:6px;font-family:var(--font-mono);" x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')"></td>
-                                                <td style="text-align:center;padding:6px;">
-                                                    <input type="number" x-model.number="item.qty" min="1"
-                                                           style="width:60px;text-align:center;padding:2px 6px;border:1px solid var(--border);border-radius:4px;">
-                                                </td>
-                                                <td style="text-align:right;padding:6px;font-family:var(--font-mono);font-weight:600;" x-text="'Rp ' + Number(item.qty * item.price).toLocaleString('id-ID')"></td>
-                                                <td style="padding:6px;">
-                                                    <button type="button" @click="removeItem(idx)"
-                                                            style="color:var(--danger,#dc2626);background:none;border:none;cursor:pointer;font-size:1rem;">✕</button>
-                                                </td>
+                                <div style="margin-top:.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
+                                    <table style="width:100%;font-size:.8125rem;border-collapse:collapse;">
+                                        <thead>
+                                            <tr style="background:var(--bg-body);">
+                                                <th style="text-align:left;padding:8px 12px;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Part</th>
+                                                <th style="text-align:right;padding:8px 12px;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Harga</th>
+                                                <th style="text-align:center;padding:8px 12px;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Qty</th>
+                                                <th style="text-align:right;padding:8px 12px;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Subtotal</th>
+                                                <th style="width:32px;"></th>
                                             </tr>
-                                        </template>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="3" style="text-align:right;padding:6px;font-weight:600;">Total Parts:</td>
-                                            <td style="text-align:right;padding:6px;font-family:var(--font-mono);font-weight:700;" x-text="'Rp ' + Number(itemsSubtotal).toLocaleString('id-ID')"></td>
-                                            <td></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="(item, idx) in items" :key="idx">
+                                                <tr style="border-top:1px solid var(--border);">
+                                                    <td style="padding:8px 12px;">
+                                                        <div style="font-weight:600;color:var(--text-primary);" x-text="item.product_name"></div>
+                                                        <div style="color:var(--text-muted);font-size:.73rem;font-family:var(--font-mono);" x-text="item.product_sku"></div>
+                                                    </td>
+                                                    <td style="text-align:right;padding:8px 12px;font-family:var(--font-mono);color:var(--text-secondary);" x-text="'Rp ' + Number(item.price).toLocaleString('id-ID')"></td>
+                                                    <td style="text-align:center;padding:8px 12px;">
+                                                        <div style="display:flex;align-items:center;gap:0;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;width:104px;margin:0 auto;">
+                                                            <button
+                                                                type="button"
+                                                                @click="item.qty > 1 ? item.qty-- : removeItem(idx)"
+                                                                style="width:32px;height:34px;flex-shrink:0;background:var(--bg-body);border:none;border-right:1px solid var(--border);cursor:pointer;font-size:1rem;font-weight:700;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;transition:background var(--transition);"
+                                                                @mouseover="$el.style.background='var(--border)'"
+                                                                @mouseleave="$el.style.background='var(--bg-body)'">−</button>
+                                                            <span
+                                                                style="flex:1;text-align:center;font-size:.875rem;font-weight:700;font-family:var(--font-mono);color:var(--text-primary);background:#fff;padding:0 4px;line-height:34px;"
+                                                                x-text="item.qty"></span>
+                                                            <button
+                                                                type="button"
+                                                                @click="item.qty++"
+                                                                style="width:32px;height:34px;flex-shrink:0;background:var(--bg-body);border:none;border-left:1px solid var(--border);cursor:pointer;font-size:1rem;font-weight:700;color:var(--text-secondary);display:flex;align-items:center;justify-content:center;transition:background var(--transition);"
+                                                                @mouseover="$el.style.background='var(--border)'"
+                                                                @mouseleave="$el.style.background='var(--bg-body)'">+</button>
+                                                        </div>
+                                                    </td>
+                                                    <td style="text-align:right;padding:8px 12px;font-family:var(--font-mono);font-weight:700;color:var(--text-primary);" x-text="'Rp ' + Number(item.qty * item.price).toLocaleString('id-ID')"></td>
+                                                    <td style="padding:8px 6px;text-align:center;">
+                                                        <button type="button" @click="removeItem(idx)"
+                                                                style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1rem;width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;transition:background var(--transition),color var(--transition);"
+                                                                @mouseover="$el.style.background='var(--danger-bg)';$el.style.color='var(--danger)'"
+                                                                @mouseleave="$el.style.background='';$el.style.color='var(--text-muted)'">✕</button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr style="background:var(--bg-body);border-top:1px solid var(--border);">
+                                                <td colspan="3" style="text-align:right;padding:8px 12px;font-size:.8125rem;font-weight:600;color:var(--text-secondary);">Total Parts:</td>
+                                                <td style="text-align:right;padding:8px 12px;font-family:var(--font-mono);font-weight:700;color:var(--text-primary);" x-text="'Rp ' + Number(itemsSubtotal).toLocaleString('id-ID')"></td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
                             </template>
                         </div>
 
-                        {{-- Grand Total --}}
-                        <div style="background:var(--bg-subtle);border-radius:8px;padding:12px 16px;margin-top:1rem;display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-weight:600;">Estimasi Total</span>
-                            <span style="font-size:1.125rem;font-weight:700;font-family:var(--font-mono);" x-text="formatRp(grandTotal)"></span>
+                        {{-- ── Grand Total ─────────────────────────────────── --}}
+                        <div style="background:var(--accent-light);border:1.5px solid var(--accent);border-radius:var(--radius-md);padding:12px 16px;margin-top:1rem;display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-weight:600;font-size:.875rem;color:#451a03;">Estimasi Total</span>
+                            <span style="font-size:1.125rem;font-weight:800;font-family:var(--font-mono);color:#451a03;" x-text="formatRp(grandTotal)"></span>
                         </div>
 
-                        <div class="modal-field" style="margin-top:1rem;">
+                        {{-- ── Catatan ─────────────────────────────────────── --}}
+                        <div class="modal-field">
                             <label>Catatan</label>
                             <textarea x-model="form.notes" rows="2" placeholder="Catatan tambahan (opsional)..."></textarea>
                         </div>
 
-                        <div class="modal-footer" style="padding:0;margin-top:1.25rem;">
-                            <button type="button" class="modal-btn-cancel" @click="closeForm()" :disabled="formLoading">Batal</button>
-                            <button type="submit" class="modal-btn-submit" :disabled="formLoading">
-                                <template x-if="formLoading"><span>Menyimpan...</span></template>
-                                <template x-if="!formLoading"><span>Buat Work Order</span></template>
-                            </button>
-                        </div>
-
+                    </div>{{-- modal-form-group --}}
                     </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="modal-btn-cancel" @click="closeForm()" :disabled="formLoading">Batal</button>
+                    <button type="button" class="modal-btn-submit" @click="submitForm()" :disabled="formLoading">
+                        <template x-if="formLoading"><span>Menyimpan...</span></template>
+                        <template x-if="!formLoading"><span>Buat Work Order</span></template>
+                    </button>
                 </div>
 
             </div>
@@ -437,29 +495,114 @@
                 </div>
 
                 <div class="modal-body">
-                    <div style="margin-bottom:1rem;font-size:.875rem;">
+                    <div style="margin-bottom:1.25rem;font-size:.875rem;background:var(--bg-body);padding:10px 14px;border-radius:var(--radius-sm);">
                         <span style="color:var(--text-muted);">Work Order:</span>
-                        <strong style="font-family:var(--font-mono);margin-left:6px;" x-text="statusTarget?.order_no"></strong>
+                        <strong style="font-family:var(--font-mono);margin-left:8px;" x-text="statusTarget?.order_no"></strong>
                     </div>
 
-                    <div style="display:flex;flex-direction:column;gap:.5rem;">
-                        <template x-for="opt in availableStatuses(statusTarget?.status)" :key="opt.value">
-                            <button
-                                @click="newStatus = opt.value"
-                                :style="newStatus === opt.value
-                                    ? 'background:var(--primary);color:#fff;border:2px solid var(--primary);'
-                                    : 'background:var(--bg);border:2px solid var(--border);color:var(--text);'"
-                                style="padding:10px 16px;border-radius:8px;font-size:.875rem;font-weight:500;cursor:pointer;text-align:left;transition:.15s;"
-                                x-text="opt.label">
-                            </button>
+                    {{-- 
+                        FIX: Tidak pakai x-for — render tiap tombol secara eksplisit
+                        berdasarkan status saat ini.
+                        
+                        Root cause bug: x-for dengan @click="newStatus = opt.value" 
+                        menyebabkan Alpine re-evaluate list → destroy+recreate DOM element
+                        yang sedang di-click → event tidak selesai diproses → tombol
+                        tampak "hilang" lalu muncul lagi tapi state tidak update.
+                        
+                        Fix: render tombol langsung dengan x-show per status transition,
+                        tidak pakai x-for sama sekali.
+                    --}}
+
+                    <div style="display:flex;flex-direction:column;gap:.625rem;">
+
+                        {{-- pending → in_progress --}}
+                        <template x-if="statusTarget?.status === 'pending'">
+                            <div style="display:flex;flex-direction:column;gap:.625rem;">
+                                <button
+                                    type="button"
+                                    @click.prevent="newStatus = 'in_progress'"
+                                    :style="newStatus === 'in_progress'
+                                        ? 'background:var(--info-bg);color:var(--info);border:2px solid var(--info);font-weight:700;'
+                                        : 'background:var(--bg-card);border:2px solid var(--border);color:var(--text-secondary);'"
+                                    style="padding:12px 16px;border-radius:var(--radius-sm);font-size:.875rem;cursor:pointer;text-align:left;transition:all var(--transition);font-family:var(--font-body);display:flex;align-items:center;gap:10px;">
+                                    <span style="font-size:1.125rem;">🔧</span>
+                                    <div>
+                                        <div style="font-weight:600;">Mulai Kerjakan</div>
+                                        <div style="font-size:.75rem;opacity:.75;">Status berubah ke: Dikerjakan</div>
+                                    </div>
+                                    <template x-if="newStatus === 'in_progress'">
+                                        <span style="margin-left:auto;font-size:1rem;">✓</span>
+                                    </template>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click.prevent="newStatus = 'cancelled'"
+                                    :style="newStatus === 'cancelled'
+                                        ? 'background:var(--danger-bg);color:var(--danger);border:2px solid var(--danger);font-weight:700;'
+                                        : 'background:var(--bg-card);border:2px solid var(--border);color:var(--text-secondary);'"
+                                    style="padding:12px 16px;border-radius:var(--radius-sm);font-size:.875rem;cursor:pointer;text-align:left;transition:all var(--transition);font-family:var(--font-body);display:flex;align-items:center;gap:10px;">
+                                    <span style="font-size:1.125rem;">✕</span>
+                                    <div>
+                                        <div style="font-weight:600;">Batalkan</div>
+                                        <div style="font-size:.75rem;opacity:.75;">Status berubah ke: Dibatalkan</div>
+                                    </div>
+                                    <template x-if="newStatus === 'cancelled'">
+                                        <span style="margin-left:auto;font-size:1rem;">✓</span>
+                                    </template>
+                                </button>
+                            </div>
                         </template>
+
+                        {{-- in_progress → done / cancelled --}}
+                        <template x-if="statusTarget?.status === 'in_progress'">
+                            <div style="display:flex;flex-direction:column;gap:.625rem;">
+                                <button
+                                    type="button"
+                                    @click.prevent="newStatus = 'done'"
+                                    :style="newStatus === 'done'
+                                        ? 'background:var(--success-bg);color:#065F46;border:2px solid var(--success);font-weight:700;'
+                                        : 'background:var(--bg-card);border:2px solid var(--border);color:var(--text-secondary);'"
+                                    style="padding:12px 16px;border-radius:var(--radius-sm);font-size:.875rem;cursor:pointer;text-align:left;transition:all var(--transition);font-family:var(--font-body);display:flex;align-items:center;gap:10px;">
+                                    <span style="font-size:1.125rem;">✅</span>
+                                    <div>
+                                        <div style="font-weight:600;">Selesai</div>
+                                        <div style="font-size:.75rem;opacity:.75;">Stok spare part akan dikurangi</div>
+                                    </div>
+                                    <template x-if="newStatus === 'done'">
+                                        <span style="margin-left:auto;font-size:1rem;">✓</span>
+                                    </template>
+                                </button>
+                                <button
+                                    type="button"
+                                    @click.prevent="newStatus = 'cancelled'"
+                                    :style="newStatus === 'cancelled'
+                                        ? 'background:var(--danger-bg);color:var(--danger);border:2px solid var(--danger);font-weight:700;'
+                                        : 'background:var(--bg-card);border:2px solid var(--border);color:var(--text-secondary);'"
+                                    style="padding:12px 16px;border-radius:var(--radius-sm);font-size:.875rem;cursor:pointer;text-align:left;transition:all var(--transition);font-family:var(--font-body);display:flex;align-items:center;gap:10px;">
+                                    <span style="font-size:1.125rem;">✕</span>
+                                    <div>
+                                        <div style="font-weight:600;">Batalkan</div>
+                                        <div style="font-size:.75rem;opacity:.75;">Status berubah ke: Dibatalkan</div>
+                                    </div>
+                                    <template x-if="newStatus === 'cancelled'">
+                                        <span style="margin-left:auto;font-size:1rem;">✓</span>
+                                    </template>
+                                </button>
+                            </div>
+                        </template>
+
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="modal-btn-cancel" @click="closeStatus()" :disabled="statusLoading">Batal</button>
-                    <button type="button" class="modal-btn-submit" @click="submitStatus()"
-                            :disabled="statusLoading || !newStatus">
+                    <button type="button" class="modal-btn-cancel" @click="closeStatus()" :disabled="statusLoading">
+                        Batal
+                    </button>
+                    <button
+                        type="button"
+                        class="modal-btn-submit"
+                        @click="submitStatus()"
+                        :disabled="statusLoading || !newStatus">
                         <template x-if="statusLoading"><span>Menyimpan...</span></template>
                         <template x-if="!statusLoading"><span>Simpan Status</span></template>
                     </button>
