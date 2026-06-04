@@ -29,10 +29,7 @@ class OwnerDashboardRepository implements OwnerDashboardRepositoryInterface
 
     public function getDailyServiceOrderCount(?string $date = null): int
     {
-        $date ??= today()->toDateString();
-        return ServiceOrder::whereDate('created_at', $date)
-            ->whereIn('status', ['pending', 'in_progress'])
-            ->count();
+        return ServiceOrder::whereIn('status', ['pending', 'in_progress'])->count();
     }
 
     /**

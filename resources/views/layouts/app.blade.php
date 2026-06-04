@@ -20,8 +20,7 @@
   {{-- Alpine.js --}}
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  {{-- Chart.js --}}
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
 
   @stack('styles')
 </head>
@@ -110,7 +109,8 @@
       };
     }
   </script>
-
+  {{-- Chart.js --}}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   @stack('scripts')
 </body>
 <script>

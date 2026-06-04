@@ -113,7 +113,7 @@
 
 
 {{-- ── Row 2: Grafik omzet ─────────────────────────────────────────────── --}}
-<div class="card" x-data="revenueChart()" x-init="init()">
+<div class="card" x-data="revenueChart()">
     <div class="card-header">
         <div>
             <div class="card-title">Omzet & Transaksi Harian</div>
@@ -302,145 +302,149 @@
 
 @push('scripts')
 <script>
+    function ownerDashboard() {
+        return {
+            selectedDate: '{{ $selected_date }}',
+            loading: false,
+            stats: {
+                daily_revenue:           {{ $daily_revenue }},
+                daily_transaction_count: {{ $daily_transaction_count }},
+                daily_service_count:     {{ $daily_service_count }},
+            },
 
-// ── Alpine: ownerDashboard — refresh stat cards saat ganti tanggal ────────
-function ownerDashboard() {
-    return {
-        selectedDate: '{{ $selected_date }}',
-        loading: false,
-        stats: {
-            daily_revenue:           {{ $daily_revenue }},
-            daily_transaction_count: {{ $daily_transaction_count }},
-            daily_service_count:     {{ $daily_service_count }},
-        },
+            init() {},
 
-        init() {},
-
-        async refreshDailyStats() {
-            this.loading = true;
-            try {
-                const res  = await fetch(`/owner/dashboard/daily-summary?date=${this.selectedDate}`);
-                const json = await res.json();
-                if (json.success) {
-                    this.stats.daily_revenue           = json.data.daily_revenue;
-                    this.stats.daily_transaction_count = json.data.daily_transaction_count;
-                    this.stats.daily_service_count     = json.data.daily_service_count;
+            async refreshDailyStats() {
+                this.loading = true;
+                try {
+                    const res  = await fetch(`/owner/dashboard/daily-summary?date=${this.selectedDate}`);
+                    const json = await res.json();
+                    if (json.success) {
+                        this.stats.daily_revenue           = json.data.daily_revenue;
+                        this.stats.daily_transaction_count = json.data.daily_transaction_count;
+                        this.stats.daily_service_count     = json.data.daily_service_count;
+                    }
+                } catch (e) {
+                    console.error('Gagal refresh stats:', e);
+                } finally {
+                    this.loading = false;
                 }
-            } catch (e) {
-                console.error('Gagal refresh stats:', e);
-            } finally {
-                this.loading = false;
-            }
-        },
-    };
-}
+            },
+        };
+    }
 
-// ── Alpine: revenueChart — grafik omzet + transaksi ──────────────────────
-function revenueChart() {
-    return {
-        chart:        null,
-        loading:      false,
-        selectedDays: {{ $chart_days }},
-        chartData:    @json($revenue_chart),
+    function revenueChart() {
+        // ← chart disimpan di sini, di luar Alpine reactive scope
+        let _chart = null;
 
-        init() {
-            setTimeout(() => this.render(), 100);
-        },
+        return {
+            loading:      false,
+            selectedDays: {{ $chart_days }},
+            chartData:    @json($revenue_chart),
 
-        render() {
-            const canvas = this.$refs.canvas;
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            if (this.chart instanceof Chart) this.chart.destroy();
+            init() {
+                this.$nextTick(() => {
+                    this.$nextTick(() => this.render());
+                });
+            },
 
-            this.chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: this.chartData.labels,
-                    datasets: [
-                        {
-                            label:           'Omzet (Rp)',
-                            data:            this.chartData.revenue,
-                            backgroundColor: 'rgba(37,99,235,0.8)',
-                            borderRadius:    4,
-                            yAxisID:         'y',
-                        },
-                        {
-                            label:           'Transaksi',
-                            data:            this.chartData.transactions,
-                            backgroundColor: 'rgba(16,185,129,0.8)',
-                            borderRadius:    4,
-                            type:            'line',
-                            yAxisID:         'y1',
-                            tension:         0.3,
-                            fill:            false,
-                            borderColor:     'rgba(16,185,129,1)',
-                            pointBackgroundColor: 'rgba(16,185,129,1)',
-                        },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 300 },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: { boxWidth: 12, padding: 16, font: { size: 12 } },
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label(ctx) {
-                                    if (ctx.datasetIndex === 0) {
-                                        return 'Omzet: Rp ' + Number(ctx.raw).toLocaleString('id-ID');
-                                    }
-                                    return 'Transaksi: ' + ctx.raw;
+            render() {
+                const canvas = this.$refs.canvas;
+                if (!canvas) return;
+
+                if (_chart) {
+                    _chart.destroy();
+                    _chart = null;
+                }
+
+                _chart = new Chart(canvas.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: this.chartData.labels,
+                        datasets: [
+                            {
+                                label:           'Omzet (Rp)',
+                                data:            this.chartData.revenue,
+                                backgroundColor: 'rgba(37,99,235,0.8)',
+                                borderRadius:    4,
+                                yAxisID:         'y',
+                            },
+                            {
+                                label:                'Transaksi',
+                                data:                 this.chartData.transactions,
+                                backgroundColor:      'rgba(16,185,129,0.8)',
+                                borderRadius:         4,
+                                type:                 'line',
+                                yAxisID:              'y1',
+                                tension:              0.3,
+                                fill:                 false,
+                                borderColor:          'rgba(16,185,129,1)',
+                                pointBackgroundColor: 'rgba(16,185,129,1)',
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: { duration: 300 },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: { boxWidth: 12, padding: 16, font: { size: 12 } },
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label(ctx) {
+                                        if (ctx.datasetIndex === 0) {
+                                            return 'Omzet: Rp ' + Number(ctx.raw).toLocaleString('id-ID');
+                                        }
+                                        return 'Transaksi: ' + ctx.raw;
+                                    },
                                 },
                             },
                         },
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            position: 'left',
-                            ticks: {
-                                callback: val => 'Rp ' + Number(val).toLocaleString('id-ID'),
-                                font: { size: 11 },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                position: 'left',
+                                ticks: {
+                                    callback: val => 'Rp ' + Number(val).toLocaleString('id-ID'),
+                                    font: { size: 11 },
+                                },
+                            },
+                            y1: {
+                                beginAtZero: true,
+                                position: 'right',
+                                grid: { drawOnChartArea: false },
+                                ticks: { precision: 0, font: { size: 11 } },
                             },
                         },
-                        y1: {
-                            beginAtZero: true,
-                            position: 'right',
-                            grid: { drawOnChartArea: false },
-                            ticks: { precision: 0, font: { size: 11 } },
-                        },
                     },
-                },
-            });
-        },
+                });
+            },
 
-        async changeDays(days) {
-            if (this.selectedDays === days) return;
-            this.loading      = true;
-            this.selectedDays = days;
+            async changeDays(days) {
+                if (this.selectedDays === days || !_chart) return;
+                this.loading      = true;
+                this.selectedDays = days;
 
-            try {
-                const res  = await fetch(`/owner/dashboard/chart?days=${days}`);
-                const json = await res.json();
-                this.chartData = json.revenue;
+                try {
+                    const res  = await fetch(`/owner/dashboard/chart?days=${days}`);
+                    const json = await res.json();
+                    this.chartData = json.revenue;
 
-                this.chart.data.labels              = [...this.chartData.labels];
-                this.chart.data.datasets[0].data    = [...this.chartData.revenue];
-                this.chart.data.datasets[1].data    = [...this.chartData.transactions];
-                this.chart.update();
-            } catch (e) {
-                console.error('Gagal load chart:', e);
-            } finally {
-                this.loading = false;
-            }
-        },
-    };
-}
+                    _chart.data.labels           = [...this.chartData.labels];
+                    _chart.data.datasets[0].data = [...this.chartData.revenue];
+                    _chart.data.datasets[1].data = [...this.chartData.transactions];
+                    _chart.update();
+                } catch (e) {
+                    console.error('Gagal load chart:', e);
+                } finally {
+                    this.loading = false;
+                }
+            },
+        };
+    }
 </script>
 @endpush
