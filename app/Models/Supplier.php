@@ -64,7 +64,7 @@ class Supplier extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->whereRaw('"is_active" = TRUE');
     }
 
     public function scopeByCity($query, string $city)

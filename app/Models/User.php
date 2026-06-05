@@ -99,7 +99,7 @@ class User extends Authenticatable
 
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->whereRaw('"is_active" = TRUE');
     }
 
     public function scopeAdmins($query)

@@ -144,7 +144,7 @@ class Product extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->whereRaw('"is_active" = TRUE');
     }
 
     /**
@@ -153,7 +153,7 @@ class Product extends Model
     public function scopeLowStock($query)
     {
         return $query->whereColumn('stock', '<=', 'min_stock')
-                     ->where('is_active', true);
+                     ->whereRaw('"is_active" = TRUE');
     }
 
     /**
@@ -161,7 +161,7 @@ class Product extends Model
      */
     public function scopeOutOfStock($query)
     {
-        return $query->where('stock', 0)->where('is_active', true);
+        return $query->where('stock', 0)->whereRaw('"is_active" = TRUE');
     }
 
     /**

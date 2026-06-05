@@ -63,7 +63,7 @@ class PosSeeder extends Seeder
         }
 
         $customerIds = DB::table('customers')->pluck('id')->toArray();
-        $productData = DB::table('products')->where('is_active', true)->get();
+        $productData = DB::table('products')->whereRaw('"is_active" = TRUE')->get();
         $userIds     = DB::table('users')->pluck('id')->toArray();
         $adminId     = DB::table('users')->where('role', 'admin')->value('id');
         $staffId     = DB::table('users')->where('role', 'staff')->value('id');
@@ -145,7 +145,7 @@ class PosSeeder extends Seeder
                         ->decrement('stock', $qty);
 
                     // Refresh data supaya stok akurat di loop berikutnya
-                    $productData = DB::table('products')->where('is_active', true)->get();
+                    $productData = DB::table('products')->whereRaw('"is_active" = TRUE')->get();
                 }
             }
         }
@@ -257,7 +257,7 @@ class PosSeeder extends Seeder
                         ->where('id', $item['product_id'])
                         ->decrement('stock', $item['qty']);
 
-                    $productData = DB::table('products')->where('is_active', true)->get();
+                    $productData = DB::table('products')->whereRaw('"is_active" = TRUE')->get();
                 }
 
                 // Pilih metode bayar (80% cash, 15% QRIS, 5% transfer)
