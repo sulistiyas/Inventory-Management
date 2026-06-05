@@ -29,14 +29,14 @@
 <body
   x-data="appShell()"
   x-init="init()"
-  :class="{ 'sidebar-is-collapsed': collapsed }"
+  :class="bodyClass"
 >
 
   {{-- Mobile sidebar overlay --}}
   <div
     class="sidebar-overlay"
-    :class="{ 'visible': mobileOpen }"
-    @click="mobileOpen = false"
+    :class="{ 'visible': isMobile && mobileOpen }"
+    @click="closeSidebar()"
     x-cloak
   ></div>
 
@@ -79,21 +79,28 @@
       return {
         collapsed:  localStorage.getItem('sidebar_collapsed') === 'true',
         mobileOpen: false,
+        isMobile:   window.innerWidth <= 768,
 
         init() {
-          // Di mobile, selalu mulai collapsed (sidebar hidden)
-          if (window.innerWidth <= 768) {
+          // Di mobile, selalu mulai dengan sidebar tertutup
+          if (this.isMobile) {
             this.collapsed  = false;
             this.mobileOpen = false;
           }
 
+          // Update isMobile secara reaktif saat resize
           window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) {
+            this.isMobile = window.innerWidth <= 768;
+            if (!this.isMobile) {
+              // Pindah ke desktop: tutup mobile overlay
               this.mobileOpen = false;
+            } else {
+              // Pindah ke mobile: reset collapsed agar tidak ada state ganjil
+              this.collapsed = false;
             }
           });
 
-          // Tutup sidebar kalau user klik di luar
+          // Tutup sidebar saat tekan Escape di mobile
           document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.mobileOpen) {
               this.mobileOpen = false;
@@ -102,7 +109,7 @@
         },
 
         toggleSidebar() {
-          if (window.innerWidth <= 768) {
+          if (this.isMobile) {
             // Mobile: slide in/out sidebar
             this.mobileOpen = !this.mobileOpen;
           } else {
@@ -112,16 +119,28 @@
           }
         },
 
+        closeSidebar() {
+          if (this.isMobile) {
+            this.mobileOpen = false;
+          }
+        },
+
         get sidebarClass() {
           return {
-            'collapsed':   this.collapsed && window.innerWidth > 768,
-            'mobile-open': this.mobileOpen,
+            'collapsed':   this.collapsed && !this.isMobile,
+            'mobile-open': this.isMobile && this.mobileOpen,
           };
         },
 
         get navbarClass() {
           return {
-            'sidebar-collapsed': this.collapsed && window.innerWidth > 768,
+            'sidebar-collapsed': this.collapsed && !this.isMobile,
+          };
+        },
+
+        get bodyClass() {
+          return {
+            'sidebar-is-collapsed': this.collapsed && !this.isMobile,
           };
         },
       };
