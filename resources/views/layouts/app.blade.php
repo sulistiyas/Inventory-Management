@@ -37,7 +37,6 @@
     class="sidebar-overlay"
     :class="{ 'visible': isMobile && mobileOpen }"
     @click="closeSidebar()"
-    x-cloak
   ></div>
 
   <div class="layout-shell">

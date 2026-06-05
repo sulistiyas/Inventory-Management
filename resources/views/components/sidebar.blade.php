@@ -235,8 +235,8 @@
 
   </nav>
 
-  {{-- Sidebar footer: collapse toggle --}}
-  <div class="sidebar-footer">
+  {{-- Sidebar footer: collapse toggle (desktop only) --}}
+  <div class="sidebar-footer" x-show="!isMobile">
     <button
       class="nav-item"
       style="width:100%; cursor:pointer; border:none; background:transparent; font-family:inherit;"
