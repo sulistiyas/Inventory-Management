@@ -97,9 +97,10 @@ class Sale extends Model
     public static function generateInvoiceNo(): string
     {
         $prefix = 'INV-' . now()->format('Ymd') . '-';
-        $last = static::where('invoice_no', 'like', $prefix . '%')
-                      ->orderByDesc('invoice_no')
-                      ->value('invoice_no');
+
+        $last = static::whereRaw("invoice_no::text LIKE ?", [$prefix . '%'])
+                    ->orderByDesc('invoice_no')
+                    ->value('invoice_no');
 
         $seq = $last ? ((int) substr($last, -4)) + 1 : 1;
 
