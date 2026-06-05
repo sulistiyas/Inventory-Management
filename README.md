@@ -19,11 +19,13 @@ Dari stok spare part, kasir, work order servis, hingga laporan harian owner — 
 ## 📸 Screenshot
 
 | Kasir POS | Work Order Servis |
-|-----------|------------------|
+|:---------:|:-----------------:|
+| ![Kasir POS](resources/images/POS(Kasir).PNG) | ![Work Order Servis](resources/images/Form_WO.PNG) |
 | Grid produk + keranjang real-time | Form WO + spare part + update status |
 
 | Owner Dashboard | Laporan Penjualan |
-|----------------|------------------|
+|:---------------:|:-----------------:|
+| ![Owner Dashboard](resources/images/own_dash.png) | ![Laporan Penjualan](resources/images/lap_penjualan.png) |
 | Omzet harian + grafik + WO aktif | Filter tanggal + breakdown metode bayar |
 
 ---
