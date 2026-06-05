@@ -81,16 +81,32 @@
         mobileOpen: false,
 
         init() {
-          // Re-check on resize
+          // Di mobile, selalu mulai collapsed (sidebar hidden)
+          if (window.innerWidth <= 768) {
+            this.collapsed  = false;
+            this.mobileOpen = false;
+          }
+
           window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) this.mobileOpen = false;
+            if (window.innerWidth > 768) {
+              this.mobileOpen = false;
+            }
+          });
+
+          // Tutup sidebar kalau user klik di luar
+          document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.mobileOpen) {
+              this.mobileOpen = false;
+            }
           });
         },
 
         toggleSidebar() {
           if (window.innerWidth <= 768) {
+            // Mobile: slide in/out sidebar
             this.mobileOpen = !this.mobileOpen;
           } else {
+            // Desktop: collapse/expand
             this.collapsed = !this.collapsed;
             localStorage.setItem('sidebar_collapsed', this.collapsed);
           }
@@ -98,13 +114,15 @@
 
         get sidebarClass() {
           return {
-            'collapsed':   this.collapsed,
+            'collapsed':   this.collapsed && window.innerWidth > 768,
             'mobile-open': this.mobileOpen,
           };
         },
 
         get navbarClass() {
-          return { 'sidebar-collapsed': this.collapsed };
+          return {
+            'sidebar-collapsed': this.collapsed && window.innerWidth > 768,
+          };
         },
       };
     }
