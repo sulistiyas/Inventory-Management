@@ -897,12 +897,12 @@ body {
   }
   .navbar { left: 0 !important; }
   .main-content { margin-left: 0 !important; width: 100% !important; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
   .content-area { padding: 16px; }
 }
 
 @media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .page-header { flex-direction: column; }
 }
 
