@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Repositories\Eloquent\SaleRepository;
+use App\Services\StockMovementService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -57,15 +58,16 @@ class SaleService
      */
     public function processSale(array $data): Sale
     {
+        \Log::info('processSale start', ['items' => $data['items']]);
         return DB::transaction(function () use ($data) {
-
+            \Log::info('inside transaction - locking products');
             // 1. Lock semua produk sekaligus (hindari deadlock N lock)
             $productIds = collect($data['items'])->pluck('product_id')->unique()->values()->toArray();
             $products   = Product::lockForUpdate()
                 ->whereIn('id', $productIds)
                 ->get()
                 ->keyBy('id');
-
+            \Log::info('products locked', ['count' => $products->count()]);
             foreach ($data['items'] as $item) {
                 $product = $products->get($item['product_id'])
                     ?? throw new \DomainException("Produk ID {$item['product_id']} tidak ditemukan.");
